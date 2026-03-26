@@ -1,4 +1,8 @@
 <?php
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 /**
  * PHPUnit bootstrap file for Peanut Festival tests
  */

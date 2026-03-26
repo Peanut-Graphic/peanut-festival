@@ -90,7 +90,7 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-4 overflow-auto">
+      <main id="main-content" tabIndex={-1} className="flex-1 p-4 overflow-auto">
         {children}
       </main>
     </div>
