@@ -89,6 +89,9 @@ final class Peanut_Festival {
         // Logging
         require_once PEANUT_FESTIVAL_PATH . 'includes/class-logger.php';
 
+        // ML Integration
+        require_once PEANUT_FESTIVAL_PATH . 'includes/class-ml-festival-predictor.php';
+
         // Migrations
         require_once PEANUT_FESTIVAL_PATH . 'includes/class-migrations.php';
 
@@ -167,6 +170,9 @@ final class Peanut_Festival {
         Peanut_Festival_Booker_Integration::get_instance();
         Peanut_Festival_Competitions::get_instance();
 
+        // ML Integration (predict attendance, optimize scheduling)
+        Peanut_Festival_ML_Predictor::get_instance();
+
         // Phase 3: Firebase real-time sync
         if (Peanut_Festival_Firebase::is_enabled()) {
             Peanut_Festival_Firebase::get_instance();
@@ -177,7 +183,13 @@ final class Peanut_Festival {
 
 // Activation/Deactivation hooks
 register_activation_hook(__FILE__, ['Peanut_Festival_Activator', 'activate']);
-register_deactivation_hook(__FILE__, ['Peanut_Festival_Deactivator', 'deactivate']);
+register_deactivation_hook(__FILE__, function() {
+    // Clear ML training schedule
+    Peanut_Festival_ML_Predictor::clear_scheduled_training();
+
+    // Call standard deactivator
+    Peanut_Festival_Deactivator::deactivate();
+});
 
 // Add custom cron intervals
 add_filter('cron_schedules', function($schedules) {
