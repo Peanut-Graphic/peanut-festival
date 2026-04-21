@@ -79,8 +79,13 @@ export function Festivals() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Festivals</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Festivals</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Organize your active and upcoming festivals, then jump into schedules, performers, and venue planning.
+          </p>
+        </div>
         <button
           onClick={() => {
             setEditingFestival(null);
@@ -145,6 +150,7 @@ export function Festivals() {
                         }}
                         className="p-1.5 rounded hover:bg-gray-100"
                         title="Edit"
+                        aria-label={`Edit ${festival.name}`}
                       >
                         <Edit2 className="w-4 h-4 text-gray-500" />
                       </button>
@@ -152,6 +158,7 @@ export function Festivals() {
                         onClick={() => duplicateMutation.mutate(festival)}
                         className="p-1.5 rounded hover:bg-gray-100"
                         title="Duplicate"
+                        aria-label={`Duplicate ${festival.name}`}
                       >
                         <Copy className="w-4 h-4 text-gray-500" />
                       </button>
@@ -159,6 +166,7 @@ export function Festivals() {
                         onClick={() => handleDelete(festival)}
                         className="p-1.5 rounded hover:bg-gray-100"
                         title="Delete"
+                        aria-label={`Delete ${festival.name}`}
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </button>
