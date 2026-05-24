@@ -13,7 +13,7 @@ concurrency:
 jobs:
   php-lint:
     name: PHP Lint
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, peanut-ci]
     steps:
       - uses: actions/checkout@v4
 
@@ -29,7 +29,7 @@ jobs:
 
   php-tests:
     name: PHP Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, peanut-ci]
     needs: php-lint
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
 
   frontend-lint:
     name: Frontend Lint & Typecheck
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, peanut-ci]
     defaults:
       run:
         working-directory: frontend
@@ -85,7 +85,7 @@ jobs:
 
   frontend-tests:
     name: Frontend Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, peanut-ci]
     needs: frontend-lint
     defaults:
       run:
@@ -108,7 +108,7 @@ jobs:
 
   frontend-build:
     name: Frontend Build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, peanut-ci]
     needs: [frontend-lint, frontend-tests]
     defaults:
       run:
