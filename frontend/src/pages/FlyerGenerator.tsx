@@ -395,10 +395,10 @@ function TemplateEditorModal({
             {/* Basic Info */}
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="flyergenerator-template-name">
                   Template Name *
                 </label>
-                <input
+                <input id="flyergenerator-template-name"
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -423,10 +423,10 @@ function TemplateEditorModal({
             {/* Image URLs */}
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="flyergenerator-template-image-url">
                   Template Image URL *
                 </label>
-                <input
+                <input id="flyergenerator-template-image-url"
                   type="url"
                   value={formData.template_url}
                   onChange={(e) => setFormData({ ...formData, template_url: e.target.value })}
@@ -438,10 +438,10 @@ function TemplateEditorModal({
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="flyergenerator-mask-image-url">
                   Mask Image URL
                 </label>
-                <input
+                <input id="flyergenerator-mask-image-url"
                   type="url"
                   value={formData.mask_url}
                   onChange={(e) => setFormData({ ...formData, mask_url: e.target.value })}
@@ -457,8 +457,8 @@ function TemplateEditorModal({
             {/* Title/Subtitle */}
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                <input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="flyergenerator-title">Title</label>
+                <input id="flyergenerator-title"
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -467,8 +467,8 @@ function TemplateEditorModal({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
-                <input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="flyergenerator-subtitle">Subtitle</label>
+                <input id="flyergenerator-subtitle"
                   type="text"
                   value={formData.subtitle}
                   onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
@@ -485,8 +485,8 @@ function TemplateEditorModal({
               </h3>
               <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">X</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-x">X</label>
+                  <input id="flyergenerator-x"
                     type="number"
                     value={formData.frame.x}
                     onChange={(e) =>
@@ -499,8 +499,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Y</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-y">Y</label>
+                  <input id="flyergenerator-y"
                     type="number"
                     value={formData.frame.y}
                     onChange={(e) =>
@@ -513,8 +513,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Width</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-width">Width</label>
+                  <input id="flyergenerator-width"
                     type="number"
                     value={formData.frame.w}
                     onChange={(e) =>
@@ -527,8 +527,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Height</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-height">Height</label>
+                  <input id="flyergenerator-height"
                     type="number"
                     value={formData.frame.h}
                     onChange={(e) =>
@@ -548,8 +548,8 @@ function TemplateEditorModal({
               <h3 className="text-sm font-medium text-gray-700 mb-2">Name Text Overlay</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">X Position</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-x-position">X Position</label>
+                  <input id="flyergenerator-x-position"
                     type="number"
                     value={formData.namebox.x}
                     onChange={(e) =>
@@ -562,8 +562,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Y Position</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-y-position">Y Position</label>
+                  <input id="flyergenerator-y-position"
                     type="number"
                     value={formData.namebox.y}
                     onChange={(e) =>
@@ -576,8 +576,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Max Width</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-max-width">Max Width</label>
+                  <input id="flyergenerator-max-width"
                     type="number"
                     value={formData.namebox.w}
                     onChange={(e) =>
@@ -590,8 +590,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Font Size</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-font-size">Font Size</label>
+                  <input id="flyergenerator-font-size"
                     type="number"
                     value={formData.namebox.size}
                     onChange={(e) =>
@@ -604,8 +604,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Text Color</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-text-color">Text Color</label>
+                  <input id="flyergenerator-text-color"
                     type="color"
                     value={formData.namebox.color}
                     onChange={(e) =>
@@ -618,8 +618,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Stroke Color</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-stroke-color">Stroke Color</label>
+                  <input id="flyergenerator-stroke-color"
                     type="color"
                     value={formData.namebox.stroke}
                     onChange={(e) =>
@@ -632,8 +632,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Stroke Width</label>
-                  <input
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-stroke-width">Stroke Width</label>
+                  <input id="flyergenerator-stroke-width"
                     type="number"
                     value={formData.namebox.stroke_w}
                     onChange={(e) =>
@@ -646,8 +646,8 @@ function TemplateEditorModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Alignment</label>
-                  <select
+                  <label className="block text-xs text-gray-500 mb-1" htmlFor="flyergenerator-alignment">Alignment</label>
+                  <select id="flyergenerator-alignment"
                     value={formData.namebox.align}
                     onChange={(e) =>
                       setFormData({

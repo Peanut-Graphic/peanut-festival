@@ -382,10 +382,10 @@ function BroadcastModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="messaging-subject">
                 Subject
               </label>
-              <input
+              <input id="messaging-subject"
                 type="text"
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
@@ -395,10 +395,10 @@ function BroadcastModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="messaging-message">
                 Message *
               </label>
-              <textarea
+              <textarea id="messaging-message"
                 value={formData.content}
                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 rows={5}

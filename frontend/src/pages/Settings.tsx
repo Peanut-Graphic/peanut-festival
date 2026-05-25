@@ -255,10 +255,10 @@ export function Settings() {
           <h2 className="text-lg font-semibold mb-4">General</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-active-festival">
                 Active Festival
               </label>
-              <select
+              <select id="settings-active-festival"
                 className="input max-w-md"
                 value={formData.active_festival_id || ''}
                 onChange={(e) =>
@@ -281,10 +281,10 @@ export function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-notification-email">
                 Notification Email
               </label>
-              <input
+              <input id="settings-notification-email"
                 type="email"
                 className="input max-w-md"
                 value={formData.notification_email || ''}
@@ -300,10 +300,10 @@ export function Settings() {
           <h2 className="text-lg font-semibold mb-4">Eventbrite Integration</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-api-token">
                 API Token
               </label>
-              <input
+              <input id="settings-api-token"
                 type="password"
                 className="input max-w-md"
                 value={formData.eventbrite_token || ''}
@@ -313,10 +313,10 @@ export function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-organization-id">
                 Organization ID
               </label>
-              <input
+              <input id="settings-organization-id"
                 type="text"
                 className="input max-w-md"
                 value={formData.eventbrite_org_id || ''}
@@ -361,10 +361,10 @@ export function Settings() {
           <h2 className="text-lg font-semibold mb-4">Mailchimp Integration</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-api-key">
                 API Key
               </label>
-              <input
+              <input id="settings-api-key"
                 type="password"
                 className="input max-w-md"
                 value={formData.mailchimp_api_key || ''}
@@ -513,10 +513,10 @@ export function Settings() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-project-id">
                       Project ID
                     </label>
-                    <input
+                    <input id="settings-project-id"
                       type="text"
                       className="input"
                       value={firebaseData.project_id || ''}
@@ -525,10 +525,10 @@ export function Settings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-database-url">
                       Database URL
                     </label>
-                    <input
+                    <input id="settings-database-url"
                       type="text"
                       className="input"
                       value={firebaseData.database_url || ''}
@@ -540,10 +540,10 @@ export function Settings() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-api-key-web">
                       API Key (Web)
                     </label>
-                    <input
+                    <input id="settings-api-key-web"
                       type="password"
                       className="input"
                       value={firebaseData.api_key || ''}
@@ -552,10 +552,10 @@ export function Settings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-vapid-key-push-notifications">
                       VAPID Key (Push Notifications)
                     </label>
-                    <input
+                    <input id="settings-vapid-key-push-notifications"
                       type="password"
                       className="input"
                       value={firebaseData.vapid_key || ''}
@@ -700,10 +700,10 @@ export function Settings() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-1st-place-weight">
                 1st Place Weight
               </label>
-              <input
+              <input id="settings-1st-place-weight"
                 type="number"
                 className="input"
                 value={formData.voting_weight_first || 3}
@@ -715,10 +715,10 @@ export function Settings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-2nd-place-weight">
                 2nd Place Weight
               </label>
-              <input
+              <input id="settings-2nd-place-weight"
                 type="number"
                 className="input"
                 value={formData.voting_weight_second || 2}
@@ -730,10 +730,10 @@ export function Settings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-3rd-place-weight">
                 3rd Place Weight
               </label>
-              <input
+              <input id="settings-3rd-place-weight"
                 type="number"
                 className="input"
                 value={formData.voting_weight_third || 1}
