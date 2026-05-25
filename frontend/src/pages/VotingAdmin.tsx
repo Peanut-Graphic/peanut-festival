@@ -57,8 +57,8 @@ export function VotingAdmin() {
 
       {/* Show Selector */}
       <div className="card p-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Select Show</label>
-        <select
+        <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="votingadmin-select-show">Select Show</label>
+        <select id="votingadmin-select-show"
           className="input max-w-md"
           value={selectedShow}
           onChange={(e) => setSelectedShow(e.target.value)}

@@ -448,10 +448,10 @@ function CreateCouponModal({
 
           <div className="p-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="attendees-coupon-code">
                 Coupon Code *
               </label>
-              <input
+              <input id="attendees-coupon-code"
                 type="text"
                 value={formData.code}
                 onChange={(e) =>
@@ -465,10 +465,10 @@ function CreateCouponModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="attendees-discount-type">
                   Discount Type
                 </label>
-                <select
+                <select id="attendees-discount-type"
                   value={formData.discount_type}
                   onChange={(e) =>
                     setFormData({
@@ -483,10 +483,10 @@ function CreateCouponModal({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="attendees-discount-value">
                   Discount Value
                 </label>
-                <input
+                <input id="attendees-discount-value"
                   type="number"
                   min="0"
                   value={formData.discount_value}
@@ -500,10 +500,10 @@ function CreateCouponModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="attendees-max-uses">
                   Max Uses
                 </label>
-                <input
+                <input id="attendees-max-uses"
                   type="number"
                   min="0"
                   value={formData.max_uses}
@@ -513,10 +513,10 @@ function CreateCouponModal({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="attendees-valid-until">
                   Valid Until
                 </label>
-                <input
+                <input id="attendees-valid-until"
                   type="date"
                   value={formData.valid_until}
                   onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}

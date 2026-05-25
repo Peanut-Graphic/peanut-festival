@@ -221,8 +221,8 @@ export function Competitions() {
       <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create Competition">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Festival</label>
-            <select name="festival_id" className="input" required>
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="competitions-festival">Festival</label>
+            <select id="competitions-festival" name="festival_id" className="input" required>
               <option value="">Select festival...</option>
               {festivals.map((f) => (
                 <option key={f.id} value={f.id}>
@@ -232,25 +232,25 @@ export function Competitions() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input type="text" name="name" className="input" placeholder="Battle of the Bands" required />
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="competitions-name">Name</label>
+            <input id="competitions-name" type="text" name="name" className="input" placeholder="Battle of the Bands" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea name="description" className="input" rows={3} placeholder="Optional description..." />
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="competitions-description">Description</label>
+            <textarea id="competitions-description" name="description" className="input" rows={3} placeholder="Optional description..." />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select name="competition_type" className="input" required>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="competitions-type">Type</label>
+              <select id="competitions-type" name="competition_type" className="input" required>
                 <option value="single_elimination">Single Elimination</option>
                 <option value="double_elimination">Double Elimination</option>
                 <option value="round_robin">Round Robin</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Voting Method</label>
-              <select name="voting_method" className="input" required>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="competitions-voting-method">Voting Method</label>
+              <select id="competitions-voting-method" name="voting_method" className="input" required>
                 <option value="head_to_head">Head to Head</option>
                 <option value="borda">Borda Count</option>
                 <option value="judges">Judges Only</option>

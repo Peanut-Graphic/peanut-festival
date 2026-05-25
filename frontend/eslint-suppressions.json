@@ -1,0 +1,17 @@
+{
+  "src/pages/FlyerGenerator.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 6
+    }
+  },
+  "src/pages/Messaging.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 2
+    }
+  },
+  "src/pages/Settings.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 2
+    }
+  }
+}
