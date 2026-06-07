@@ -1,10 +1,12 @@
 <?php
-
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
 /**
- * PHPUnit bootstrap file for Peanut Festival tests
+ * PHPUnit bootstrap file for Peanut Festival tests.
+ *
+ * NOTE: this file must NOT carry the `defined('ABSPATH') || exit;` web-access
+ * guard that the plugin's include files use. That guard belongs in files that
+ * could be hit directly over HTTP — but the TEST bootstrap is precisely the
+ * thing that DEFINES ABSPATH below, so guarding here made the bootstrap exit
+ * immediately and PHPUnit collect ZERO tests (a silent no-op suite). Removed.
  */
 
 // Define test constants
