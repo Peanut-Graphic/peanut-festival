@@ -86,6 +86,18 @@ if (!function_exists('current_user_can')) {
     }
 }
 
+if (!function_exists('is_user_logged_in')) {
+    function is_user_logged_in() {
+        return false;
+    }
+}
+
+if (!function_exists('absint')) {
+    function absint($maybeint) {
+        return abs((int) $maybeint);
+    }
+}
+
 if (!function_exists('add_action')) {
     function add_action($hook, $callback, $priority = 10, $args = 1) {
         // No-op for testing
@@ -126,7 +138,15 @@ if (!function_exists('get_option')) {
     $mock_options = [];
     function get_option($key, $default = false) {
         global $mock_options;
-        return $mock_options[$key] ?? $default;
+        if (array_key_exists($key, $mock_options)) {
+            return $mock_options[$key];
+        }
+        // WordPress core always provides admin_email; mirror that so tests
+        // exercising the admin-email fallback path see a real string.
+        if ($key === 'admin_email') {
+            return 'admin@example.com';
+        }
+        return $default;
     }
 }
 
@@ -265,9 +285,24 @@ if (!class_exists('WP_REST_Request')) {
         private $params = [];
         private $json_params = [];
         private $method = 'GET';
+        private $route = '';
+        private $headers = [];
 
         public function __construct($method = 'GET', $route = '') {
             $this->method = $method;
+            $this->route = $route;
+        }
+
+        public function set_header($key, $value) {
+            $this->headers[strtolower($key)] = $value;
+        }
+
+        public function get_header($key) {
+            return $this->headers[strtolower($key)] ?? null;
+        }
+
+        public function get_route() {
+            return $this->route;
         }
 
         public function set_param($key, $value) {
@@ -372,6 +407,27 @@ if (!function_exists('wp_remote_request')) {
 // Mock home_url
 if (!function_exists('home_url')) {
     function home_url($path = '') {
+        return 'http://example.com' . $path;
+    }
+}
+
+// Mock wp_parse_url
+if (!function_exists('wp_parse_url')) {
+    function wp_parse_url($url, $component = -1) {
+        return parse_url($url, $component);
+    }
+}
+
+// Mock get_site_url
+if (!function_exists('get_site_url')) {
+    function get_site_url($blog_id = null, $path = '', $scheme = null) {
+        return 'http://example.com' . $path;
+    }
+}
+
+// Mock site_url
+if (!function_exists('site_url')) {
+    function site_url($path = '', $scheme = null) {
         return 'http://example.com' . $path;
     }
 }

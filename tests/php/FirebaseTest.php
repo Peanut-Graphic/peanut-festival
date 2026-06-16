@@ -17,6 +17,8 @@ class FirebaseTest extends TestCase
         // Reset mock options for each test
         global $mock_options;
         $mock_options = [];
+        // Reset the singleton so each test re-reads its own settings.
+        Peanut_Festival_Firebase::reset_instance();
     }
 
     public function test_is_enabled_returns_false_when_not_configured(): void

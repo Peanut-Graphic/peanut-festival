@@ -71,6 +71,18 @@ class Peanut_Festival_Firebase {
     }
 
     /**
+     * Reset the singleton instance.
+     *
+     * Intended for tests, which mutate the underlying settings between cases
+     * and need the configuration re-read on the next get_instance() call.
+     *
+     * @return void
+     */
+    public static function reset_instance(): void {
+        self::$instance = null;
+    }
+
+    /**
      * Private constructor.
      */
     private function __construct() {
