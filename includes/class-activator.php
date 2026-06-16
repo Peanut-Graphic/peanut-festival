@@ -64,6 +64,7 @@ class Peanut_Festival_Activator {
             capacity int(11) DEFAULT NULL,
             ticket_price decimal(10,2) DEFAULT NULL,
             status varchar(20) DEFAULT 'draft',
+            completed_at datetime DEFAULT NULL,
             featured tinyint(1) DEFAULT 0,
             kid_friendly tinyint(1) DEFAULT 0,
             voting_config longtext,

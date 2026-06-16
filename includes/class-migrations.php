@@ -16,7 +16,7 @@ class Peanut_Festival_Migrations {
     /**
      * Current database schema version
      */
-    private const CURRENT_VERSION = '1.6.0';
+    private const CURRENT_VERSION = '1.7.0';
 
     /**
      * Option name for storing DB version
@@ -145,6 +145,10 @@ class Peanut_Festival_Migrations {
             '1.6.0' => [
                 'name' => 'Add performance indexes for votes and transactions',
                 'callback' => [self::class, 'migration_1_6_0'],
+            ],
+            '1.7.0' => [
+                'name' => 'Add completed_at column to shows table',
+                'callback' => [self::class, 'migration_1_7_0'],
             ],
         ];
     }
@@ -594,6 +598,35 @@ class Peanut_Festival_Migrations {
             if (empty($indexes)) {
                 $wpdb->query("ALTER TABLE $transactions_table ADD INDEX festival_created (festival_id, created_at)");
             }
+        }
+
+        return true;
+    }
+
+    /**
+     * Migration 1.7.0: Add completed_at column to shows table
+     *
+     * Peanut_Festival_Shows::complete() records when a show finishes by writing
+     * a `completed_at` timestamp, but pf_shows never declared the column, so the
+     * write silently failed on real MySQL ("Unknown column 'completed_at'").
+     * Add the column idempotently for existing installs.
+     */
+    private static function migration_1_7_0(): bool {
+        global $wpdb;
+
+        $shows_table = $wpdb->prefix . 'pf_shows';
+
+        // Skip if the table doesn't exist yet (fresh installs get it from the
+        // activator schema directly).
+        $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $shows_table));
+        if (!$table_exists) {
+            return true;
+        }
+
+        $columns = $wpdb->get_col("SHOW COLUMNS FROM $shows_table");
+
+        if (!in_array('completed_at', $columns)) {
+            $wpdb->query("ALTER TABLE $shows_table ADD COLUMN completed_at datetime DEFAULT NULL AFTER status");
         }
 
         return true;
