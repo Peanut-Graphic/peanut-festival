@@ -193,6 +193,25 @@ class RestApiTest extends TestCase
         $this->assertFalse($data['success']);
     }
 
+    public function test_get_leaderboard_query_uses_real_vote_rank_column(): void
+    {
+        global $wpdb;
+
+        $request = new WP_REST_Request('GET', '/peanut-festival/v1/leaderboard');
+        // Pass festival_id explicitly so we reach the leaderboard query.
+        $request->set_param('festival_id', 7);
+
+        $response = $this->api->get_leaderboard($request);
+
+        $this->assertTrue($response->get_data()['success']);
+
+        // The pf_votes table has a `vote_rank` column, NOT `ranking`.
+        // A query against the non-existent `ranking` column throws
+        // "Unknown column 'ranking'" on every public leaderboard call.
+        $this->assertStringContainsString('vote_rank', $wpdb->last_query);
+        $this->assertStringNotContainsString('v.ranking', $wpdb->last_query);
+    }
+
     public function test_get_match_votes_returns_not_found_for_invalid_match(): void
     {
         $request = new WP_REST_Request('GET', '/peanut-festival/v1/matches/999999/votes');

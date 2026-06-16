@@ -727,7 +727,7 @@ class Peanut_Festival_REST_API {
                 p.name,
                 p.photo_url,
                 COALESCE(SUM(
-                    CASE v.ranking
+                    CASE v.vote_rank
                         WHEN 1 THEN 5
                         WHEN 2 THEN 3
                         WHEN 3 THEN 1

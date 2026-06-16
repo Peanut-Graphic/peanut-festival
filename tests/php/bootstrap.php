@@ -576,6 +576,7 @@ if (!isset($wpdb)) {
         public $prefix = 'wp_';
         public $last_error = '';
         public $insert_id = 0;
+        public $last_query = '';
         private $mock_results = [];
 
         public function prepare($query, ...$args) {
@@ -583,19 +584,23 @@ if (!isset($wpdb)) {
         }
 
         public function query($query) {
+            $this->last_query = $query;
             return true;
         }
 
         public function get_var($query) {
+            $this->last_query = $query;
             return 0;
         }
 
         public function get_row($query, $output = OBJECT) {
+            $this->last_query = $query;
             return null;
         }
 
         public function get_results($query, $output = OBJECT) {
-            return [];
+            $this->last_query = $query;
+            return $this->mock_results ?: [];
         }
 
         public function insert($table, $data, $format = null) {
