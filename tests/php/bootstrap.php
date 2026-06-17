@@ -98,9 +98,42 @@ if (!function_exists('absint')) {
     }
 }
 
+// Records every add_action registration so tests can assert what is hooked.
+$registered_actions = [];
+
 if (!function_exists('add_action')) {
     function add_action($hook, $callback, $priority = 10, $args = 1) {
-        // No-op for testing
+        global $registered_actions;
+        $registered_actions[$hook][] = $callback;
+    }
+}
+
+if (!function_exists('has_action')) {
+    /**
+     * Test helper mirroring WP has_action(): returns true if any callback is
+     * hooked to $hook, or if the specific $callback is hooked.
+     */
+    function has_action($hook, $callback = false) {
+        global $registered_actions;
+        if (empty($registered_actions[$hook])) {
+            return false;
+        }
+        if ($callback === false) {
+            return true;
+        }
+        foreach ($registered_actions[$hook] as $registered) {
+            if ($registered === $callback) {
+                return true;
+            }
+            // Match [object, 'method'] pairs by class + method.
+            if (is_array($registered) && is_array($callback)
+                && is_object($registered[0]) && is_object($callback[0])
+                && get_class($registered[0]) === get_class($callback[0])
+                && $registered[1] === $callback[1]) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -175,6 +208,17 @@ if (!function_exists('wp_mail')) {
 
 if (!function_exists('wp_remote_post')) {
     function wp_remote_post($url, $args = []) {
+        // Mock Google's OAuth2 token exchange so token-acquisition paths can be
+        // exercised without network access.
+        if (strpos($url, 'oauth2.googleapis.com/token') !== false) {
+            return [
+                'response' => ['code' => 200],
+                'body' => json_encode([
+                    'access_token' => 'mock-access-token',
+                    'expires_in' => 3600,
+                ]),
+            ];
+        }
         return ['response' => ['code' => 200], 'body' => '{}'];
     }
 }

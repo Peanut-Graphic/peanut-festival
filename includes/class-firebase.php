@@ -24,6 +24,11 @@ if (!defined('ABSPATH')) {
 class Peanut_Festival_Firebase {
 
     /**
+     * Transient key for the cached Google OAuth2 access token.
+     */
+    private const TOKEN_TRANSIENT = 'pf_firebase_access_token';
+
+    /**
      * Singleton instance.
      *
      * @var Peanut_Festival_Firebase|null
@@ -116,13 +121,16 @@ class Peanut_Festival_Firebase {
             return;
         }
 
-        // Sync data to Firebase on changes
-        add_action('peanut_festival_vote_recorded', [$this, 'sync_vote'], 10, 2);
-        add_action('peanut_festival_match_vote_recorded', [$this, 'sync_match_vote'], 10, 2);
-        add_action('peanut_festival_show_status_changed', [$this, 'sync_show_status'], 10, 2);
-        add_action('peanut_festival_performer_checkin', [$this, 'sync_performer_checkin'], 10, 2);
+        // NOTE: data-sync to Firebase (votes/matches/show status/check-ins) is
+        // owned exclusively by Peanut_Festival_Realtime_Sync, which batches and
+        // de-duplicates writes and flushes once on `shutdown`. Hooking the
+        // blocking per-event sync_* methods here as well caused a DOUBLE write
+        // on every vote (one of them a synchronous 10s-timeout REST call inline
+        // on the request), the most likely stall under a live-voting surge.
+        // The sync_vote/sync_match_vote/sync_show_status/sync_performer_checkin
+        // methods are retained for direct/manual use but are no longer hooked.
 
-        // Push notification triggers
+        // Push notification triggers (unique to Firebase, not handled elsewhere)
         add_action('peanut_festival_voting_starting', [$this, 'notify_voting_starting'], 10, 2);
         add_action('peanut_festival_performer_on_stage', [$this, 'notify_performer_on_stage'], 10, 2);
         add_action('peanut_festival_winner_announced', [$this, 'notify_winner_announced'], 10, 2);
@@ -168,8 +176,22 @@ class Peanut_Festival_Firebase {
      * @return string|null Access token or null on failure
      */
     private function get_access_token(): ?string {
-        // Return cached token if still valid
+        // Return in-memory cached token if still valid (same request).
         if ($this->access_token && $this->token_expires > time()) {
+            return $this->access_token;
+        }
+
+        // Fall back to a transient so the token survives across requests and we
+        // don't make a blocking OAuth roundtrip on the first Firebase write of
+        // every request. WordPress treats an expired transient as absent.
+        $cached = get_transient(self::TOKEN_TRANSIENT);
+        if (is_array($cached)
+            && !empty($cached['token'])
+            && !empty($cached['expires'])
+            && $cached['expires'] > time()
+        ) {
+            $this->access_token = $cached['token'];
+            $this->token_expires = (int) $cached['expires'];
             return $this->access_token;
         }
 
@@ -213,6 +235,18 @@ class Peanut_Festival_Firebase {
 
         $this->access_token = $body['access_token'];
         $this->token_expires = time() + ($body['expires_in'] ?? 3600) - 60;
+
+        // Persist across requests. Transient TTL is the token lifetime so it is
+        // auto-purged the moment it would otherwise be considered stale.
+        $ttl = max(60, $this->token_expires - time());
+        set_transient(
+            self::TOKEN_TRANSIENT,
+            [
+                'token' => $this->access_token,
+                'expires' => $this->token_expires,
+            ],
+            $ttl
+        );
 
         return $this->access_token;
     }

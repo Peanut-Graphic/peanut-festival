@@ -91,6 +91,117 @@ class FirebaseTest extends TestCase
         $this->assertSame($instance1, $instance2);
     }
 
+    /**
+     * Seed a fully-enabled Firebase config and (re)build the singleton so its
+     * hooks register. Returns the fresh instance.
+     */
+    private function enable_firebase(): Peanut_Festival_Firebase
+    {
+        global $mock_options, $registered_actions;
+        $mock_options['peanut_festival_settings'] = [
+            'firebase_enabled' => true,
+            'firebase_project_id' => 'test-project',
+            'firebase_database_url' => 'https://test.firebaseio.com',
+            'firebase_api_key' => 'test-api-key',
+            'firebase_service_account' => '',
+        ];
+        $registered_actions = [];
+        Peanut_Festival_Firebase::reset_instance();
+        return Peanut_Festival_Firebase::get_instance();
+    }
+
+    public function test_vote_recorded_is_not_double_hooked_to_blocking_sync(): void
+    {
+        // The batched Realtime_Sync layer owns the vote_recorded -> Firebase
+        // write. Firebase must NOT also hook its own blocking per-vote
+        // sync_vote() to the same event, or every vote does TWO Firebase
+        // writes (one of them a synchronous 10s-timeout REST call inline).
+        $firebase = $this->enable_firebase();
+
+        $this->assertFalse(
+            has_action('peanut_festival_vote_recorded', [$firebase, 'sync_vote']),
+            'Firebase::sync_vote must not be hooked to peanut_festival_vote_recorded '
+            . '(duplicates the batched Realtime_Sync write)'
+        );
+    }
+
+    public function test_data_sync_events_are_not_hooked_to_blocking_firebase_methods(): void
+    {
+        $firebase = $this->enable_firebase();
+
+        // None of the batched data-sync events should route to Firebase's own
+        // inline blocking sync_* handlers.
+        $this->assertFalse(has_action('peanut_festival_vote_recorded', [$firebase, 'sync_vote']));
+        $this->assertFalse(has_action('peanut_festival_match_vote_recorded', [$firebase, 'sync_match_vote']));
+        $this->assertFalse(has_action('peanut_festival_show_status_changed', [$firebase, 'sync_show_status']));
+        $this->assertFalse(has_action('peanut_festival_performer_checkin', [$firebase, 'sync_performer_checkin']));
+    }
+
+    public function test_push_notification_hooks_are_still_registered(): void
+    {
+        // Push-notification triggers are unique to Firebase (not duplicated in
+        // Realtime_Sync) and must remain wired.
+        $firebase = $this->enable_firebase();
+
+        $this->assertTrue(has_action('peanut_festival_voting_starting', [$firebase, 'notify_voting_starting']));
+        $this->assertTrue(has_action('peanut_festival_performer_on_stage', [$firebase, 'notify_performer_on_stage']));
+        $this->assertTrue(has_action('peanut_festival_winner_announced', [$firebase, 'notify_winner_announced']));
+    }
+
+    public function test_access_token_is_persisted_in_transient(): void
+    {
+        global $transients;
+        $transients = [];
+
+        $firebase = $this->enable_firebase();
+
+        // Build a service account so token acquisition is attempted.
+        $reflection = new ReflectionClass(Peanut_Festival_Firebase::class);
+        $configProp = $reflection->getProperty('config');
+        $configProp->setAccessible(true);
+        $config = $configProp->getValue($firebase);
+        $config['service_account'] = json_encode([
+            'client_email' => 'svc@test.iam.gserviceaccount.com',
+            'private_key' => self::test_private_key(),
+        ]);
+        $configProp->setValue($firebase, $config);
+
+        $method = $reflection->getMethod('get_access_token');
+        $method->setAccessible(true);
+        $token = $method->invoke($firebase);
+
+        // The HTTP exchange is mocked to return a token (see bootstrap), so the
+        // result should be cached in a transient for reuse across requests.
+        $this->assertNotEmpty($token, 'Expected an access token from the mocked exchange');
+
+        $cached = false;
+        foreach ($transients as $key => $value) {
+            if (strpos($key, 'firebase') !== false && strpos($key, 'token') !== false) {
+                $cached = true;
+                break;
+            }
+        }
+        $this->assertTrue(
+            $cached,
+            'OAuth access token must be persisted in a transient so it survives '
+            . 'across requests (instance-only caching forces a blocking OAuth '
+            . 'roundtrip on the first Firebase write of every request)'
+        );
+    }
+
+    /**
+     * A throwaway RSA private key generated for tests only.
+     */
+    private static function test_private_key(): string
+    {
+        $res = openssl_pkey_new([
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        ]);
+        openssl_pkey_export($res, $pem);
+        return $pem;
+    }
+
     public function test_write_returns_false_when_disabled(): void
     {
         global $mock_options;
