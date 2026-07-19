@@ -13,7 +13,7 @@ on:
 jobs:
   security:
     name: Net 2 — dependency audit (non-blocking)
-    runs-on: [self-hosted, linux, peanut-ci]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -28,7 +28,7 @@ jobs:
 
   php-tests:
     name: Net 6 — property (blocking)
-    runs-on: [self-hosted, linux, peanut-ci]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:

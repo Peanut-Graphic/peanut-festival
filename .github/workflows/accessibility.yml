@@ -13,7 +13,7 @@ concurrency:
 jobs:
   frontend-a11y:
     name: Frontend Accessibility Tests
-    runs-on: [self-hosted, linux, peanut-ci]
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
