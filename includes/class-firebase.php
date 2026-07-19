@@ -270,18 +270,25 @@ class Peanut_Festival_Firebase {
 
         $token = $this->get_access_token();
         if (!$token) {
-            // Fallback to API key for public writes (if allowed by rules)
-            $url = rtrim($this->config['database_url'], '/') . '/' . ltrim($path, '/') . '.json';
-            if (!empty($this->config['api_key'])) {
-                $url .= '?auth=' . $this->config['api_key'];
-            }
-        } else {
-            $url = rtrim($this->config['database_url'], '/') . '/' . ltrim($path, '/') . '.json';
+            // FAIL-CLOSED. Every write() caller is a privileged server-side
+            // write (leaderboards, brackets, now_playing, festival state) that
+            // database.rules.json requires a service_account token for. The old
+            // ?auth=<web api_key> fallback authenticated with a PUBLIC browser
+            // credential — it either fails those rules anyway or, on a
+            // public-writable path, "authorizes" with a value anyone can read.
+            // Refuse the write instead of degrading to a weak/misleading auth.
+            Peanut_Festival_Logger::error(
+                'Firebase write refused: no service-account access token '
+                . '(check the firebase service_account setting). Path: ' . $path
+            );
+            return false;
         }
+
+        $url = rtrim($this->config['database_url'], '/') . '/' . ltrim($path, '/') . '.json';
 
         $response = wp_remote_request($url, [
             'method' => 'PUT',
-            'headers' => $token ? ['Authorization' => 'Bearer ' . $token] : [],
+            'headers' => ['Authorization' => 'Bearer ' . $token],
             'body' => json_encode($data),
             'timeout' => 10,
         ]);

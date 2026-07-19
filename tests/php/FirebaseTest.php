@@ -108,6 +108,42 @@ class FirebaseTest extends TestCase
         $this->assertFalse($result);
     }
 
+    /**
+     * Regression (audit 2026-07, P5): server-side writes must NOT fall back to
+     * the public web API key as the Realtime-DB ?auth= param. Every write()
+     * caller is a privileged server write (leaderboards, brackets, now_playing,
+     * festival state) that database.rules.json requires a service_account token
+     * for; the browser api_key is public, so ?auth=<api_key> is a weak/
+     * misleading auth path. write() must authenticate only with the minted
+     * service-account Bearer token and fail closed when it is unavailable.
+     */
+    public function test_write_does_not_fall_back_to_public_api_key_auth(): void
+    {
+        $ref = new ReflectionClass(Peanut_Festival_Firebase::class);
+        $src = file_get_contents($ref->getFileName());
+        $start = strpos($src, 'public function write(');
+        $this->assertNotFalse($start, 'write() method not found');
+        // Slice from write() to the next public method (read()).
+        $end = strpos($src, 'public function read(', $start);
+        $body = substr($src, $start, ($end !== false ? $end - $start : 900));
+
+        $this->assertStringNotContainsString(
+            "\$url .= '?auth='",
+            $body,
+            'write() must not append ?auth=<api_key> — that is the public-key fallback the P5 fix removed.'
+        );
+        $this->assertMatchesRegularExpression(
+            '/if\s*\(\s*!\s*\$token\s*\)\s*\{[^}]*return false;/s',
+            $body,
+            'write() must fail closed (return false) when no service-account token is available.'
+        );
+        $this->assertStringContainsString(
+            "'Authorization' => 'Bearer ' . \$token",
+            $body,
+            'write() must authenticate with the service-account Bearer token.'
+        );
+    }
+
     public function test_read_returns_null_when_disabled(): void
     {
         global $mock_options;
