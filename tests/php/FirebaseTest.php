@@ -17,6 +17,12 @@ class FirebaseTest extends TestCase
         // Reset mock options for each test
         global $mock_options;
         $mock_options = [];
+
+        // The production class caches configuration in a singleton. Each test
+        // changes the backing options, so reload it to prevent order-dependent
+        // results from leaking between cases.
+        $reflection = new ReflectionClass(Peanut_Festival_Firebase::class);
+        $reflection->getProperty('instance')->setValue(null, null);
     }
 
     public function test_is_enabled_returns_false_when_not_configured(): void
@@ -99,7 +105,6 @@ class FirebaseTest extends TestCase
         // Reset instance to reload config
         $reflection = new ReflectionClass(Peanut_Festival_Firebase::class);
         $instanceProperty = $reflection->getProperty('instance');
-        $instanceProperty->setAccessible(true);
         $instanceProperty->setValue(null, null);
 
         $firebase = Peanut_Festival_Firebase::get_instance();
@@ -154,7 +159,6 @@ class FirebaseTest extends TestCase
         // Reset instance
         $reflection = new ReflectionClass(Peanut_Festival_Firebase::class);
         $instanceProperty = $reflection->getProperty('instance');
-        $instanceProperty->setAccessible(true);
         $instanceProperty->setValue(null, null);
 
         $firebase = Peanut_Festival_Firebase::get_instance();
@@ -173,7 +177,6 @@ class FirebaseTest extends TestCase
         // Reset instance
         $reflection = new ReflectionClass(Peanut_Festival_Firebase::class);
         $instanceProperty = $reflection->getProperty('instance');
-        $instanceProperty->setAccessible(true);
         $instanceProperty->setValue(null, null);
 
         $firebase = Peanut_Festival_Firebase::get_instance();
@@ -192,7 +195,6 @@ class FirebaseTest extends TestCase
         // Reset instance
         $reflection = new ReflectionClass(Peanut_Festival_Firebase::class);
         $instanceProperty = $reflection->getProperty('instance');
-        $instanceProperty->setAccessible(true);
         $instanceProperty->setValue(null, null);
 
         $firebase = Peanut_Festival_Firebase::get_instance();
@@ -214,7 +216,6 @@ class FirebaseTest extends TestCase
         // Reset instance
         $reflection = new ReflectionClass(Peanut_Festival_Firebase::class);
         $instanceProperty = $reflection->getProperty('instance');
-        $instanceProperty->setAccessible(true);
         $instanceProperty->setValue(null, null);
 
         $firebase = Peanut_Festival_Firebase::get_instance();

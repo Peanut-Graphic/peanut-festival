@@ -50,6 +50,17 @@ class RestApiTest extends TestCase
         $this->assertEquals('missing_parameters', $data['code']);
     }
 
+    public function test_submit_vote_rejects_cross_origin_request_before_processing(): void
+    {
+        $request = new WP_REST_Request('POST', '/peanut-festival/v1/vote/submit');
+        $request->set_header('Origin', 'https://attacker.example');
+
+        $response = $this->api->submit_vote($request);
+
+        $this->assertSame(403, $response->get_status());
+        $this->assertSame('cross_origin_blocked', $response->get_data()['code']);
+    }
+
     public function test_submit_vote_validates_array_performer_ids(): void
     {
         $request = new WP_REST_Request('POST', '/peanut-festival/v1/vote/submit');

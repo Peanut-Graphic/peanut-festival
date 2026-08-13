@@ -132,11 +132,39 @@ class ShowsTest extends TestCase
 
     public function test_get_upcoming_returns_array(): void
     {
-        $this->markTestSkipped('Method get_upcoming() not yet implemented');
+        $this->assertIsArray(Peanut_Festival_Shows::get_upcoming(1, 10));
     }
 
     public function test_get_by_date_range_returns_array(): void
     {
-        $this->markTestSkipped('Method get_by_date_range() not yet implemented');
+        $this->assertIsArray(
+            Peanut_Festival_Shows::get_by_date_range('2026-08-01', '2026-08-31', 1)
+        );
+    }
+
+    public function test_get_by_date_range_rejects_reversed_range(): void
+    {
+        $this->assertSame(
+            [],
+            Peanut_Festival_Shows::get_by_date_range('2026-08-31', '2026-08-01')
+        );
+    }
+
+    /**
+     * @dataProvider invalidDateRangeProvider
+     */
+    public function test_get_by_date_range_rejects_malformed_dates(string $from, string $to): void
+    {
+        $this->assertSame([], Peanut_Festival_Shows::get_by_date_range($from, $to));
+    }
+
+    public function invalidDateRangeProvider(): array
+    {
+        return [
+            'invalid calendar day' => ['2026-02-30', '2026-03-01'],
+            'SQL-shaped input' => ["2026-08-01' OR 1=1 --", '2026-08-31'],
+            'non-padded date' => ['2026-8-1', '2026-08-31'],
+            'empty lower bound' => ['', '2026-08-31'],
+        ];
     }
 }

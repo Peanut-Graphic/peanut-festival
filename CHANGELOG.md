@@ -5,6 +5,16 @@ All notable changes to the Peanut Festival plugin will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Added `get_upcoming()` and inclusive `get_by_date_range()` show queries, including fail-closed handling for reversed ranges.
+
+### Fixed
+- Restored the standalone PHPUnit harness with faithful WordPress authentication, integer, option, and mail mocks.
+- Isolated Firebase singleton state between tests and removed obsolete PHP 8.5 reflection calls.
+- Replaced notification fallback and skipped show-query placeholders with behavioral regression tests.
+
 ## [1.3.0] - 2026-01-01
 
 ### Added
