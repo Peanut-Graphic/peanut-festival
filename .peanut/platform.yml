@@ -134,6 +134,14 @@ exceptions:
     verification: Add a curated Festival package contract to the central publisher, dry-run it, ship an approved signed release, and prove its active canary and rollback behavior.
     review_date: "2026-11-14"
     status: proposed
+  - id: PAR-405
+    concern: Frontend CI built tracked assets but uploaded no ephemeral artifact
+    reason: Vite writes the production bundle and hidden manifest under assets/dist, while the workflow previously targeted frontend/dist and only emitted a non-blocking no-files warning; the source repair points at the real output, includes the hidden manifest, and fails closed if the directory is absent.
+    risk: Resolved in the candidate source; without the repair, green build jobs provide no downloadable artifact and cannot prove the compiled manifest was captured.
+    owner: Peanut Graphic
+    verification: Require exact-head and exact-main Frontend Build jobs to upload a non-empty frontend-build artifact containing .vite/manifest.json and compiled CSS/JavaScript.
+    review_date: "2026-08-22"
+    status: accepted
   - id: PAR-407
     concern: Peanut Festival has no updater or package-signature verification gate
     reason: The live license-server API rejects peanut-festival as unknown, source inspection found no updater or upgrader_pre_download gate, and the existing release has no signed manifest.
