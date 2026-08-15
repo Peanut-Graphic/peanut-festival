@@ -39,7 +39,7 @@ A comprehensive WordPress plugin for managing community festivals, including per
 ## Requirements
 
 - WordPress 6.0+
-- PHP 8.1+
+- PHP 8.0+
 - MySQL 5.7+ or MariaDB 10.3+
 
 ## Installation
@@ -105,7 +105,7 @@ The plugin creates custom roles with specific capabilities:
 
 ### Prerequisites
 
-- PHP 8.1+
+- PHP 8.1+ for Composer dependencies and test tooling
 - Composer
 - Node.js 18+
 - npm

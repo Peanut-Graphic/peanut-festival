@@ -1,24 +1,52 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { ReactNode, useEffect } from 'react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import '@testing-library/jest-dom';
 
 // Import components to test
-import Layout from '../../components/layout/Layout';
-import Modal from '../../components/common/Modal';
-import { FormFields } from '../../components/common/FormFields';
-import Toast from '../../components/common/Toast';
+import { Layout } from '../../components/layout/Layout';
+import { Modal } from '../../components/common/Modal';
+import { InputField, SelectField } from '../../components/common/FormFields';
+import { ToastProvider, useToast } from '../../components/common/Toast';
 
 expect.extend(toHaveNoViolations);
+
+function TestLayout({ children }: { children: ReactNode }) {
+  return (
+    <MemoryRouter>
+      <Layout>{children}</Layout>
+    </MemoryRouter>
+  );
+}
+
+function ToastFixture({ type, message }: { type: 'success' | 'error' | 'warning' | 'info'; message: string }) {
+  const { addToast } = useToast();
+
+  useEffect(() => {
+    addToast(type, message, 0);
+  }, [addToast, message, type]);
+
+  return null;
+}
+
+function renderToast(type: 'success' | 'error' | 'warning' | 'info', message: string) {
+  return render(
+    <ToastProvider>
+      <ToastFixture type={type} message={message} />
+    </ToastProvider>,
+  );
+}
 
 describe('Festival Management Plugin - Accessibility Tests', () => {
   describe('Layout Component', () => {
     it('should have no accessibility violations', async () => {
       const { container } = render(
-        <Layout>
+        <TestLayout>
           <h1>Test Content</h1>
           <p>Main content area</p>
-        </Layout>
+        </TestLayout>,
       );
       const results = await axe(container);
       expect(results).toHaveNoViolations();
@@ -26,11 +54,11 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
 
     it('should have proper heading hierarchy', () => {
       const { container } = render(
-        <Layout>
+        <TestLayout>
           <h1>Primary Heading</h1>
           <h2>Secondary Heading</h2>
           <h3>Tertiary Heading</h3>
-        </Layout>
+        </TestLayout>,
       );
       const h1 = screen.getByRole('heading', { level: 1 });
       const h2 = screen.getByRole('heading', { level: 2 });
@@ -42,31 +70,17 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
     });
 
     it('should have accessible navigation elements', () => {
-      const { container } = render(
-        <Layout>
-          <nav aria-label="Main navigation">
-            <a href="#festivals">Festivals</a>
-            <a href="#shows">Shows</a>
-            <a href="#attendees">Attendees</a>
-          </nav>
-        </Layout>
-      );
-      const nav = screen.getByRole('navigation');
-      expect(nav).toHaveAttribute('aria-label', 'Main navigation');
+      render(<TestLayout>Main content</TestLayout>);
+      const nav = screen.getByRole('navigation', {
+        name: 'Festival management',
+      });
+      expect(nav).toBeInTheDocument();
     });
 
     it('should provide skip link for keyboard navigation', () => {
-      const { container } = render(
-        <Layout>
-          <a href="#main" className="skip-link">
-            Skip to main content
-          </a>
-          <nav>Navigation</nav>
-          <main id="main">Main content</main>
-        </Layout>
-      );
+      const { container } = render(<TestLayout>Main content</TestLayout>);
       const skipLink = screen.getByText('Skip to main content');
-      expect(skipLink).toHaveAttribute('href', '#main');
+      expect(skipLink).toHaveAttribute('href', '#main-content');
     });
   });
 
@@ -75,7 +89,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <Modal isOpen={true} onClose={vi.fn()} title="Festival Details">
           <p>Modal content</p>
-        </Modal>
+        </Modal>,
       );
       const results = await axe(container);
       expect(results).toHaveNoViolations();
@@ -85,7 +99,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <Modal isOpen={true} onClose={vi.fn()} title="Festival Details">
           <p>Modal content</p>
-        </Modal>
+        </Modal>,
       );
       const modal = container.querySelector('[role="dialog"]');
       expect(modal).toBeInTheDocument();
@@ -95,7 +109,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <Modal isOpen={true} onClose={vi.fn()} title="Event Schedule">
           <p>Schedule details</p>
-        </Modal>
+        </Modal>,
       );
       expect(screen.getByText('Event Schedule')).toBeInTheDocument();
     });
@@ -106,7 +120,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <button>Action 1</button>
           <button>Action 2</button>
           <button>Close Modal</button>
-        </Modal>
+        </Modal>,
       );
       const buttons = screen.getAllByRole('button');
       expect(buttons.length).toBeGreaterThan(0);
@@ -117,7 +131,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       render(
         <Modal isOpen={true} onClose={handleClose} title="Test Modal">
           <p>Content</p>
-        </Modal>
+        </Modal>,
       );
       expect(screen.getByText('Content')).toBeInTheDocument();
     });
@@ -126,86 +140,56 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
   describe('Form Component Accessibility', () => {
     it('should have proper label associations', () => {
       const { container } = render(
-        <FormFields
-          field={{
-            name: 'festivalName',
-            type: 'text',
-            label: 'Festival Name',
-            placeholder: 'Enter festival name',
-          }}
-          value=""
-          onChange={vi.fn()}
-        />
+        <InputField name="festivalName" label="Festival Name" placeholder="Enter festival name" onChange={vi.fn()} />,
       );
       const label = screen.getByLabelText('Festival Name');
       expect(label).toBeInTheDocument();
     });
 
     it('should indicate required fields', () => {
-      const { container } = render(
-        <FormFields
-          field={{
-            name: 'eventTitle',
-            type: 'text',
-            label: 'Event Title',
-            required: true,
-          }}
-          value=""
-          onChange={vi.fn()}
-        />
-      );
+      const { container } = render(<InputField name="eventTitle" label="Event Title" required onChange={vi.fn()} />);
       const input = screen.getByLabelText(/Event Title/);
-      expect(input).toHaveAttribute('required');
+      expect(input).toHaveAttribute('aria-required', 'true');
     });
 
     it('should display validation error messages with ARIA live region', () => {
       const { container } = render(
-        <FormFields
-          field={{
-            name: 'registrationDate',
-            type: 'date',
-            label: 'Registration Date',
-          }}
-          value=""
+        <InputField
+          name="registrationDate"
+          type="date"
+          label="Registration Date"
           onChange={vi.fn()}
           error="Please select a valid date"
-        />
+        />,
       );
       expect(screen.getByText('Please select a valid date')).toBeInTheDocument();
     });
 
     it('should have accessible select dropdown', () => {
       const { container } = render(
-        <FormFields
-          field={{
-            name: 'festivalType',
-            type: 'select',
-            label: 'Festival Type',
-            options: [
-              { value: 'music', label: 'Music Festival' },
-              { value: 'comedy', label: 'Comedy Festival' },
-              { value: 'arts', label: 'Arts Festival' },
-            ],
-          }}
-          value=""
+        <SelectField
+          name="festivalType"
+          label="Festival Type"
+          options={[
+            { value: 'music', label: 'Music Festival' },
+            { value: 'comedy', label: 'Comedy Festival' },
+            { value: 'arts', label: 'Arts Festival' },
+          ]}
           onChange={vi.fn()}
-        />
+        />,
       );
       expect(screen.getByLabelText('Festival Type')).toBeInTheDocument();
     });
 
     it('should provide placeholder text assistance', () => {
       const { container } = render(
-        <FormFields
-          field={{
-            name: 'attendeeEmail',
-            type: 'email',
-            label: 'Email Address',
-            placeholder: 'attendee@example.com',
-          }}
-          value=""
+        <InputField
+          name="attendeeEmail"
+          type="email"
+          label="Email Address"
+          placeholder="attendee@example.com"
           onChange={vi.fn()}
-        />
+        />,
       );
       const input = screen.getByPlaceholderText('attendee@example.com');
       expect(input).toBeInTheDocument();
@@ -214,28 +198,21 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
 
   describe('Toast Notification Accessibility', () => {
     it('should have no accessibility violations', async () => {
-      const { container } = render(
-        <Toast message="Event created successfully" type="success" />
-      );
+      const { container } = renderToast('success', 'Event created successfully');
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should use ARIA live region for announcements', () => {
-      const { container } = render(
-        <Toast message="Registration submitted" type="info" />
-      );
-      const alert = container.querySelector('[role="alert"]') ||
-        container.querySelector('[role="status"]');
+      const { container } = renderToast('info', 'Registration submitted');
+      const alert = container.querySelector('[role="alert"]') || container.querySelector('[role="status"]');
       expect(alert).toBeInTheDocument();
     });
 
     it('should announce different toast types', () => {
-      const types = ['success', 'error', 'warning', 'info'];
+      const types = ['success', 'error', 'warning', 'info'] as const;
       types.forEach((type) => {
-        const { container } = render(
-          <Toast message={`Message: ${type}`} type={type as any} />
-        );
+        renderToast(type, `Message: ${type}`);
         expect(screen.getByText(`Message: ${type}`)).toBeInTheDocument();
       });
     });
@@ -268,7 +245,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
               </tr>
             </tbody>
           </table>
-        </div>
+        </div>,
       );
       const grid = container.querySelector('[role="grid"]');
       expect(grid).toHaveAttribute('aria-label', 'Festival Events');
@@ -277,12 +254,10 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
     it('should provide keyboard navigation for calendar events', () => {
       const { container } = render(
         <div role="region" aria-label="Calendar Events">
-          <button aria-label="June 15, 2024 - Opening Ceremony">
-            June 15
-          </button>
+          <button aria-label="June 15, 2024 - Opening Ceremony">June 15</button>
           <button aria-label="June 16, 2024 - Main Events">June 16</button>
           <button aria-label="June 17, 2024 - Closing Show">June 17</button>
-        </div>
+        </div>,
       );
       const buttons = screen.getAllByRole('button');
       expect(buttons).toHaveLength(3);
@@ -300,13 +275,10 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <div aria-label="Past event" aria-current="false">
             Previous Festival - January 2024
           </div>
-        </div>
+        </div>,
       );
       const currentEvent = screen.getByText('Current Festival - March 2024');
-      expect(currentEvent.parentElement).toHaveAttribute(
-        'aria-current',
-        'true'
-      );
+      expect(currentEvent).toHaveAttribute('aria-current', 'true');
     });
   });
 
@@ -320,7 +292,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <div role="region" aria-live="polite">
             Event moved to position 2
           </div>
-        </div>
+        </div>,
       );
       const dragElement = screen.getByRole('button');
       expect(dragElement).toHaveAttribute('aria-grabbed', 'false');
@@ -330,14 +302,10 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <div>
           <div draggable="true">Item 1</div>
-          <div
-            role="region"
-            aria-dropeffect="move"
-            aria-label="Drop zone for reordering"
-          >
+          <div role="region" aria-dropeffect="move" aria-label="Drop zone for reordering">
             Drop here
           </div>
-        </div>
+        </div>,
       );
       const dropZone = screen.getByText('Drop here');
       expect(dropZone).toHaveAttribute('aria-dropeffect', 'move');
@@ -365,7 +333,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
               <td>Confirmed</td>
             </tr>
           </tbody>
-        </table>
+        </table>,
       );
       const headers = screen.getAllByRole('columnheader');
       expect(headers.length).toBe(4);
@@ -383,7 +351,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
               <td>Main Stage</td>
             </tr>
           </tbody>
-        </table>
+        </table>,
       );
       expect(screen.getByText('Festival Venues')).toBeInTheDocument();
     });
@@ -401,7 +369,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
               </th>
             </tr>
           </thead>
-        </table>
+        </table>,
       );
       const sortButton = screen.getByRole('button');
       expect(sortButton).toBeInTheDocument();
@@ -415,20 +383,15 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <button>Create Festival</button>
           <button>Edit Event</button>
           <button>Delete Attendee</button>
-        </div>
+        </div>,
       );
-      expect(screen.getByRole('button', { name: 'Create Festival' }))
-        .toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Edit Event' }))
-        .toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Delete Attendee' }))
-        .toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Create Festival' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Edit Event' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Delete Attendee' })).toBeInTheDocument();
     });
 
     it('should provide ARIA label for icon buttons', () => {
-      const { container } = render(
-        <button aria-label="Delete this event">✕</button>
-      );
+      const { container } = render(<button aria-label="Delete this event">✕</button>);
       const button = screen.getByRole('button', { name: /Delete this event/ });
       expect(button).toBeInTheDocument();
     });
@@ -437,7 +400,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <button disabled aria-disabled="true">
           Submit (Disabled)
-        </button>
+        </button>,
       );
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
@@ -447,7 +410,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <button aria-busy="true" disabled>
           Loading...
-        </button>
+        </button>,
       );
       const button = screen.getByRole('button');
       expect(button).toHaveAttribute('aria-busy', 'true');
@@ -459,12 +422,8 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <div>
           <label htmlFor="festival-start">Festival Start Date</label>
-          <input
-            id="festival-start"
-            type="date"
-            aria-label="Festival Start Date"
-          />
-        </div>
+          <input id="festival-start" type="date" aria-label="Festival Start Date" />
+        </div>,
       );
       const input = screen.getByLabelText('Festival Start Date');
       expect(input).toHaveAttribute('type', 'date');
@@ -476,7 +435,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <label htmlFor="event-time">Event Time</label>
           <input id="event-time" type="time" />
           <span id="timezone-hint">Times shown in EST</span>
-        </div>
+        </div>,
       );
       expect(screen.getByText('Times shown in EST')).toBeInTheDocument();
     });
@@ -491,7 +450,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           </a>
           <a href="/shows">Shows</a>
           <a href="/attendees">Attendees</a>
-        </nav>
+        </nav>,
       );
       const currentLink = screen.getByRole('link', { name: 'Festivals' });
       expect(currentLink).toHaveAttribute('aria-current', 'page');
@@ -505,7 +464,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <a href="/festivals/1">Festival Name</a>
           <span aria-label="breadcrumb separator">/</span>
           <span aria-current="page">Edit</span>
-        </nav>
+        </nav>,
       );
       const breadcrumb = screen.getByLabelText('Breadcrumb');
       expect(breadcrumb).toBeInTheDocument();
@@ -519,7 +478,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <li>Festival 1</li>
           <li>Festival 2</li>
           <li>Festival 3</li>
-        </ul>
+        </ul>,
       );
       const list = container.querySelector('ul');
       expect(list).toBeInTheDocument();
@@ -533,7 +492,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <li>Register for festival</li>
           <li>Receive confirmation email</li>
           <li>Attend event</li>
-        </ol>
+        </ol>,
       );
       const list = container.querySelector('ol');
       expect(list).toBeInTheDocument();
@@ -545,7 +504,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <div role="status" aria-live="polite" aria-atomic="true">
           Registration closed
-        </div>
+        </div>,
       );
       const status = screen.getByText('Registration closed');
       expect(status).toHaveAttribute('role', 'status');
@@ -563,7 +522,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <span aria-label="event status past" className="status-badge">
             Past
           </span>
-        </div>
+        </div>,
       );
       expect(screen.getByLabelText('event status active')).toBeInTheDocument();
     });
@@ -579,7 +538,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <span className="text-green-600" title="Success">
             ✓ Event created
           </span>
-        </div>
+        </div>,
       );
       const textElements = screen.getAllByText(/Validation failed|Event created/);
       expect(textElements.length).toBeGreaterThan(0);
@@ -595,7 +554,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           </a>
           <nav>Navigation menu</nav>
           <main id="main-content">Main festival management content</main>
-        </div>
+        </div>,
       );
       const skipLink = screen.getByText('Skip to main content');
       expect(skipLink).toHaveAttribute('href', '#main-content');
@@ -609,7 +568,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <button>First Button</button>
           <button>Second Button</button>
           <button>Third Button</button>
-        </div>
+        </div>,
       );
       const buttons = screen.getAllByRole('button');
       buttons.forEach((button) => {
@@ -637,7 +596,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
           <option>Option 1</option>
           <option>Option 2</option>
           <option>Option 3</option>
-        </select>
+        </select>,
       );
       const select = screen.getByRole('combobox');
       expect(select).toBeInTheDocument();
@@ -649,7 +608,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <div role="status" aria-live="polite">
           Festival details updated successfully
-        </div>
+        </div>,
       );
       expect(screen.getByText(/updated successfully/)).toBeInTheDocument();
     });
@@ -658,7 +617,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <div role="alert" aria-live="assertive">
           Please correct the errors below
-        </div>
+        </div>,
       );
       expect(screen.getByText(/correct the errors/)).toBeInTheDocument();
     });
@@ -669,7 +628,7 @@ describe('Festival Management Plugin - Accessibility Tests', () => {
       const { container } = render(
         <div role="status" aria-live="polite">
           Changes saved automatically
-        </div>
+        </div>,
       );
       expect(screen.getByText('Changes saved automatically')).toBeInTheDocument();
     });

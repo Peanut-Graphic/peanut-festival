@@ -43,7 +43,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', footer }:
         type="button"
         className="absolute inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
-        aria-label="Close dialog"
+        aria-label="Close dialog backdrop"
       />
 
       {/* Modal */}
@@ -58,7 +58,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', footer }:
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -120,11 +120,7 @@ export function ConfirmDialog({
           <button onClick={onClose} className="btn btn-secondary" disabled={isLoading}>
             {cancelText}
           </button>
-          <button
-            onClick={onConfirm}
-            className={`btn ${variantClasses[variant]}`}
-            disabled={isLoading}
-          >
+          <button onClick={onConfirm} className={`btn ${variantClasses[variant]}`} disabled={isLoading}>
             {isLoading ? 'Processing...' : confirmText}
           </button>
         </>

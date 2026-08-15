@@ -13,9 +13,7 @@ function TestComponent() {
       <button onClick={() => addToast('warning', 'Warning message')}>Warning</button>
       <button onClick={() => addToast('info', 'Info message')}>Info</button>
       <button onClick={() => addToast('success', 'Persistent', 0)}>Persistent</button>
-      {toasts.length > 0 && (
-        <button onClick={() => removeToast(toasts[0].id)}>Remove First</button>
-      )}
+      {toasts.length > 0 && <button onClick={() => removeToast(toasts[0].id)}>Remove First</button>}
       <span data-testid="toast-count">{toasts.length}</span>
     </div>
   );
@@ -31,7 +29,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <div>Test Content</div>
-        </ToastProvider>
+        </ToastProvider>,
       );
       expect(screen.getByText('Test Content')).toBeInTheDocument();
     });
@@ -40,7 +38,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
       // Should render without throwing
       expect(screen.getByText('Success')).toBeInTheDocument();
@@ -65,7 +63,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Success'));
@@ -76,7 +74,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Error'));
@@ -87,7 +85,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Warning'));
@@ -98,7 +96,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Info'));
@@ -109,7 +107,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Success'));
@@ -128,7 +126,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Success'));
@@ -142,7 +140,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Success'));
@@ -163,7 +161,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Success'));
@@ -175,7 +173,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Error'));
@@ -187,7 +185,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Warning'));
@@ -199,7 +197,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Info'));
@@ -213,19 +211,27 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Success'));
       const container = screen.getByText('Success message').closest('div')?.parentElement;
-      expect(container).toHaveClass('fixed', 'bottom-4', 'right-4', 'z-50');
+      expect(container).toHaveClass(
+        'fixed',
+        'inset-x-3',
+        'bottom-3',
+        'z-50',
+        'sm:inset-x-auto',
+        'sm:bottom-4',
+        'sm:right-4',
+      );
     });
 
     it('renders toasts with animation class', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Success'));
@@ -239,7 +245,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Success'));
@@ -253,7 +259,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Error'));
@@ -267,7 +273,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Warning'));
@@ -281,7 +287,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByText('Info'));
@@ -297,7 +303,7 @@ describe('Toast', () => {
       render(
         <ToastProvider>
           <TestComponent />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       fireEvent.click(screen.getByRole('button', { name: 'Persistent' }));

@@ -17,6 +17,8 @@ class NotificationsTest extends TestCase
         // Reset mock options
         global $mock_options;
         $mock_options = [];
+        global $mock_mail_calls;
+        $mock_mail_calls = [];
     }
 
     public function test_singleton_returns_same_instance(): void
@@ -290,14 +292,21 @@ class NotificationsTest extends TestCase
 
     public function test_notification_email_fallback(): void
     {
-        global $mock_options;
-        $mock_options['peanut_festival_settings'] = [];
+        global $mock_options, $mock_mail_calls;
+        $mock_options['admin_email'] = 'festival-admin@example.com';
 
-        // Should fall back to admin_email when notification_email not set
-        $admin_email = get_option('admin_email');
+        Peanut_Festival_Notifications::send_email(
+            'recipient@example.com',
+            'Fallback test',
+            '<p>Message</p>'
+        );
 
-        // The mock returns empty, but in real scenarios it would have a value
-        $this->assertIsString($admin_email);
+        $this->assertCount(1, $mock_mail_calls);
+        $this->assertContains(
+            'From: Test Site <festival-admin@example.com>',
+            $mock_mail_calls[0]['headers'],
+            'Outgoing mail must use the WordPress administrator address when no custom sender is supplied.'
+        );
     }
 
     public function test_type_labels_mapping(): void

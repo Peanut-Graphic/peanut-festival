@@ -37,7 +37,7 @@ if (!function_exists('plugin_basename')) {
 
 if (!function_exists('sanitize_text_field')) {
     function sanitize_text_field($str) {
-        return trim(strip_tags($str));
+        return trim(strip_tags((string) $str));
     }
 }
 
@@ -49,7 +49,19 @@ if (!function_exists('sanitize_email')) {
 
 if (!function_exists('sanitize_textarea_field')) {
     function sanitize_textarea_field($str) {
-        return trim(strip_tags($str));
+        return trim(strip_tags((string) $str));
+    }
+}
+
+if (!function_exists('absint')) {
+    function absint($value) {
+        return abs((int) $value);
+    }
+}
+
+if (!function_exists('is_user_logged_in')) {
+    function is_user_logged_in() {
+        return false;
     }
 }
 
@@ -67,10 +79,10 @@ if (!function_exists('wp_json_encode')) {
 
 if (!function_exists('current_time')) {
     function current_time($type) {
-        if ($type === 'mysql') {
-            return date('Y-m-d H:i:s');
+        if ($type === 'timestamp' || $type === 'U') {
+            return time();
         }
-        return time();
+        return date($type === 'mysql' ? 'Y-m-d H:i:s' : $type);
     }
 }
 
@@ -126,6 +138,9 @@ if (!function_exists('get_option')) {
     $mock_options = [];
     function get_option($key, $default = false) {
         global $mock_options;
+        if ($key === 'admin_email' && !array_key_exists($key, $mock_options)) {
+            return 'admin@example.com';
+        }
         return $mock_options[$key] ?? $default;
     }
 }
@@ -147,8 +162,10 @@ if (!function_exists('delete_option')) {
 }
 
 if (!function_exists('wp_mail')) {
+    $mock_mail_calls = [];
     function wp_mail($to, $subject, $message, $headers = '', $attachments = []) {
-        // Mock - just return true
+        global $mock_mail_calls;
+        $mock_mail_calls[] = compact('to', 'subject', 'message', 'headers', 'attachments');
         return true;
     }
 }
@@ -264,6 +281,7 @@ if (!class_exists('WP_REST_Request')) {
     class WP_REST_Request {
         private $params = [];
         private $json_params = [];
+        private $headers = [];
         private $method = 'GET';
 
         public function __construct($method = 'GET', $route = '') {
@@ -293,6 +311,26 @@ if (!class_exists('WP_REST_Request')) {
         public function get_method() {
             return $this->method;
         }
+
+        public function set_header($key, $value) {
+            $this->headers[strtolower($key)] = $value;
+        }
+
+        public function get_header($key) {
+            return $this->headers[strtolower($key)] ?? '';
+        }
+    }
+}
+
+if (!function_exists('get_site_url')) {
+    function get_site_url($blog_id = null, $path = '', $scheme = null) {
+        return 'http://example.com' . ($path === '' ? '' : '/' . ltrim($path, '/'));
+    }
+}
+
+if (!function_exists('wp_parse_url')) {
+    function wp_parse_url($url, $component = -1) {
+        return parse_url($url, $component);
     }
 }
 
