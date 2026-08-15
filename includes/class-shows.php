@@ -151,6 +151,53 @@ class Peanut_Festival_Shows {
     }
 
     /**
+     * Get scheduled shows from today onward.
+     *
+     * @param int|null $festival_id Optional festival filter.
+     * @param int      $limit       Maximum results to return. Zero is unlimited.
+     * @return array
+     */
+    public static function get_upcoming(?int $festival_id = null, int $limit = 0): array {
+        return self::get_all([
+            'festival_id' => $festival_id,
+            'status' => 'scheduled',
+            'date_from' => current_time('Y-m-d'),
+            'limit' => max(0, $limit),
+        ]);
+    }
+
+    /**
+     * Get shows in an inclusive date range.
+     *
+     * Reversed ranges are rejected instead of silently issuing a misleading
+     * query that can never match.
+     *
+     * @param string   $date_from   First date in Y-m-d format.
+     * @param string   $date_to     Last date in Y-m-d format.
+     * @param int|null $festival_id Optional festival filter.
+     * @return array
+     */
+    public static function get_by_date_range(string $date_from, string $date_to, ?int $festival_id = null): array {
+        if (!self::is_valid_date($date_from) || !self::is_valid_date($date_to) || $date_from > $date_to) {
+            return [];
+        }
+
+        return self::get_all([
+            'festival_id' => $festival_id,
+            'date_from' => $date_from,
+            'date_to' => $date_to,
+        ]);
+    }
+
+    /**
+     * Validate a calendar date without allowing PHP's rollover normalization.
+     */
+    private static function is_valid_date(string $date): bool {
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        return $parsed !== false && $parsed->format('Y-m-d') === $date;
+    }
+
+    /**
      * Get a show by ID.
      *
      * @since 1.0.0

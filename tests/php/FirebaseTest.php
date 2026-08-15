@@ -18,6 +18,9 @@ class FirebaseTest extends TestCase
         global $mock_options;
         $mock_options = [];
 
+        // The production class caches configuration in a singleton. Each test
+        // changes the backing options, so reload it to prevent order-dependent
+        // results from leaking between cases.
         $reflection = new ReflectionClass(Peanut_Festival_Firebase::class);
         $reflection->getProperty('instance')->setValue(null, null);
     }
