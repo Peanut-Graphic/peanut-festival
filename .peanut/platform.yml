@@ -14,6 +14,10 @@ environments:
     kind: production
     provider: GitHub Releases
     url: "https://github.com/Peanut-Graphic/peanut-festival/releases"
+  - name: central-first-party-install
+    kind: production
+    provider: peanutgraphic.com shared WordPress hosting
+    url: "https://peanutgraphic.com"
 runtimes:
   - name: php
     baseline: WordPress compatibility matrix
@@ -22,7 +26,7 @@ runtimes:
       - { scope: dependency, source: composer.json, value: "development dependencies only; platform PHP 8.3" }
       - { scope: ci, source: .github/workflows/ci.yml, value: "PHP 8.2" }
       - { scope: ci, source: .github/workflows/tests.yml and wp-contract.yml, value: "PHP 8.2 and 8.3" }
-    production_observation: { status: not-applicable }
+    production_observation: { status: verified, value: "PHP 8.5.9 on the central first-party installation; distributed client hosts unverified", observed_at: "2026-08-15T01:09:00-04:00", evidence: "read-only host interpreter and active-plugin inventory" }
   - name: node
     baseline: "22"
     declarations:
@@ -34,7 +38,7 @@ runtimes:
     declarations:
       - { scope: dependency, source: peanut-festival.php, value: "Requires at least 6.0" }
       - { scope: test, source: .github/workflows/wp-contract.yml, value: "WordPress latest" }
-    production_observation: { status: not-applicable }
+    production_observation: { status: verified, value: "WordPress 6.9.7 on the central first-party installation; distributed client hosts unverified", observed_at: "2026-08-15T01:09:00-04:00", evidence: "read-only WP-CLI core-version and active-plugin inventory" }
 databases:
   - name: host-database
     role: transactional
@@ -44,7 +48,7 @@ databases:
       - { scope: dependency, source: includes/class-activator.php and includes/class-migrations.php, value: "many dbDelta tables plus sequential versioned ALTER TABLE migrations during normal plugin boot" }
       - { scope: ci, source: .github/workflows/wp-contract.yml, value: "mysql:8 real WordPress REST contract lane" }
     production_equivalent_test: "yes"
-    production_observation: { status: not-applicable }
+    production_observation: { status: verified, value: "MariaDB 10.6.27, latin1_swedish_ci server collation, SQL mode ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION on the central first-party installation; distributed client hosts unverified", observed_at: "2026-08-15T01:09:00-04:00", evidence: "read-only database metadata query; no application rows read" }
   - name: firebase-realtime-database
     role: adjunct
     baseline: Optional per-install Firebase Realtime Database
@@ -52,7 +56,7 @@ databases:
       - { scope: dependency, source: includes/class-firebase.php, value: "service-account authenticated database and Cloud Messaging calls; writes fail closed without service credentials" }
       - { scope: documentation, source: docs/DEPLOYMENT.md and firebase/database.rules.json, value: "manual project, rules, service-account, and VAPID configuration" }
     production_equivalent_test: unknown
-    production_observation: { status: not-applicable }
+    production_observation: { status: unverified }
 services:
   - kind: scheduler
     baseline: WordPress cron on each plugin installation
@@ -60,12 +64,12 @@ services:
       - { scope: dependency, source: includes/class-competitions.php, value: "five-minute match deadline checks" }
       - { scope: dependency, source: includes/class-ml-festival-predictor.php, value: "weekly local ML-service training" }
       - { scope: dependency, source: includes/class-deactivator.php, value: "daily cleanup and Eventbrite schedule cleanup hooks" }
-    production_observation: { status: not-applicable }
+    production_observation: { status: verified, value: "Five-minute match-deadline hook registered centrally; minute job queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks absent", observed_at: "2026-08-15T01:34:00-04:00", evidence: "read-only WP-Cron schedule metadata; no event executed" }
   - kind: realtime
     baseline: Optional Firebase Realtime Database and Cloud Messaging
     declarations:
       - { scope: dependency, source: includes/class-firebase.php and includes/class-realtime-sync.php, value: "OAuth service-account writes, deletes, push notifications, and queued festival state synchronization" }
-    production_observation: { status: not-applicable }
+    production_observation: { status: unverified }
   - kind: other
     baseline: Optional operator-configured SaaS integrations
     declarations:
@@ -73,7 +77,7 @@ services:
       - { scope: dependency, source: includes/class-eventbrite.php, value: "Eventbrite API event and venue synchronization" }
       - { scope: dependency, source: includes/class-mailchimp.php, value: "Mailchimp audience synchronization" }
       - { scope: dependency, source: includes/class-ml-festival-predictor.php, value: "fixed localhost:8100 ML service health, prediction, optimization, and training API" }
-    production_observation: { status: not-applicable }
+    production_observation: { status: verified, value: "Central host loopback ML /health reports peanut-ml 1.0.0 healthy; Firebase, Stripe, Eventbrite, Mailchimp, and distributed client integrations unverified", observed_at: "2026-08-15T01:34:00-04:00", evidence: "read-only loopback health request; no model training, payment, or third-party integration invoked" }
 distribution:
   mode: manual
   source_of_truth: Historical manually packaged GitHub Release v1.3.1
@@ -84,7 +88,7 @@ distribution:
 exceptions:
   - id: PAR-207
     concern: PHP and JavaScript runtime declarations do not define one supported build and host matrix
-    reason: The plugin permits PHP 8.0, Composer resolves for PHP 8.3, CI spans PHP 8.2 and 8.3, frontend CI uses Node 20, and frontend/package.json declares neither engines.node nor packageManager.
+    reason: The plugin permits PHP 8.0, Composer resolves for PHP 8.3, CI spans PHP 8.2 and 8.3, the central first-party installation runs PHP 8.5.9, frontend CI uses Node 20, and frontend/package.json declares neither engines.node nor packageManager.
     risk: Customer hosts, dependency resolution, CI, and release assets can exercise materially different runtimes and package-manager behavior.
     owner: Peanut Graphic
     verification: Approve the supported WordPress PHP matrix, align the header and Composer platform declaration, exercise every supported PHP lane, and pin fleet Node and npm versions.
@@ -92,7 +96,7 @@ exceptions:
     status: proposed
   - id: PAR-306
     concern: Distributed host databases include MariaDB but required CI exercises only MySQL 8
-    reason: The plugin declares MySQL 5.7+ and MariaDB 10.3+, creates many dbDelta tables, and runs sequential ALTER TABLE migrations during ordinary plugin boot, while the only real WordPress lane uses mysql:8.
+    reason: The plugin declares MySQL 5.7+ and MariaDB 10.3+, creates many dbDelta tables, and runs sequential ALTER TABLE migrations during ordinary plugin boot. The central first-party installation runs MariaDB 10.6.27 with latin1_swedish_ci and a non-strict SQL mode, while the only real WordPress lane uses mysql:8 and distributed client hosts remain unverified.
     risk: MariaDB- and older-MySQL-specific DDL, index, collation, migration, or transactional behavior can fail on festival sites without appearing in the required gate.
     owner: Peanut Graphic
     verification: Run activation, sequential upgrade, and real-WordPress contracts against every supported MySQL and MariaDB lane.
@@ -100,7 +104,7 @@ exceptions:
     status: accepted
   - id: PAR-310
     concern: Optional Firebase production ownership and release boundary are install-specific and unverified
-    reason: The plugin can write/delete Realtime Database state and send Cloud Messaging notifications using operator-supplied service credentials, while rules deployment and project setup are manual and no repository workflow proves project, revision, backup, health, or rollback state.
+    reason: The plugin can write/delete Realtime Database state and send Cloud Messaging notifications using operator-supplied service credentials, while rules deployment and project setup are manual and no repository workflow proves project, revision, backup, health, or rollback state. Central Firebase configuration was deliberately not inspected; only the match-deadline hook is registered, while the minute job queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks are absent.
     risk: WordPress releases, Firebase rules/configuration, and live realtime data can drift independently without a single auditable owner or rollback contract.
     owner: Peanut Graphic
     verification: Inventory active Firebase projects and rules revisions, document data ownership/backups and fail-closed credentials, and define whether Firebase changes ship with or independently from the plugin.
@@ -123,17 +127,17 @@ exceptions:
     review_date: "2026-11-14"
     status: proposed
   - id: PAR-507
-    concern: GitHub repository state conflicts with active maintenance and release-parity scope
-    reason: Peanut-Graphic/peanut-festival is archived and read-only, but the parity registry marks it maintenance lifecycle, program-scope active, and manifest-required; main contains unreleased security and CI changes after v1.3.1.
-    risk: Required manifests, fixes, and release onboarding cannot be pushed or reviewed while the repository is archived, yet treating it as retired would abandon maintained production-facing code.
+    concern: GitHub repository archive conflicted with active maintenance and release-parity scope
+    reason: Peanut-Graphic/peanut-festival was archived and read-only while the parity registry marked it maintenance lifecycle, program-scope active, and manifest-required; explicit approval restored archived=false before the manifest workflow.
+    risk: The archive had blocked required manifests, fixes, and release onboarding while maintained production-facing code remained active.
     owner: Peanut Graphic
     verification: Explicitly approve and perform repository unarchive before further changes, or formally retire the plugin and document its replacement/data/update boundary.
     review_date: "2026-08-21"
-    status: proposed
+    status: retired
 verification:
-  status: source-audited
-  audited_commit: 20c27590a9277b349549e543ebbf7139004adf19
-  last_reviewed: "2026-08-14"
+  status: live-verified
+  audited_commit: 472716d70928eba3ed55b477424e2080694a113c
+  last_reviewed: "2026-08-15"
   sources:
     - peanut-festival.php
     - composer.json
@@ -156,8 +160,10 @@ verification:
     - GitHub Release v1.3.1 ZIP metadata and contents
     - Peanut License Server /updates/check response for peanut-festival
     - GitHub repository archived-state response
+    - Read-only central first-party PHP, WordPress, active-plugin, WP-Cron, loopback ML health, MariaDB version, collation, and SQL-mode metadata on 2026-08-15
   outstanding:
-    - Obtain explicit approval to unarchive the GitHub repository, or formally retire the plugin and document its replacement.
+    - Inventory supported distributed client-host PHP, WordPress, database, scheduler, Firebase, payment, and third-party contracts without collecting customer data.
+    - Reconcile why the central minute queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks are not registered.
     - Align and pin PHP, Node, and npm declarations under PAR-207 and PAR-205.
     - Add supported MariaDB and older-MySQL activation/migration/real-WordPress lanes under PAR-306.
     - Inventory and govern Firebase production state under PAR-310.
