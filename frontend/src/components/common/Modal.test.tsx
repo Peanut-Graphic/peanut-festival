@@ -40,7 +40,7 @@ describe('Modal', () => {
       render(
         <Modal {...defaultProps}>
           <p>Custom content</p>
-        </Modal>
+        </Modal>,
       );
       expect(screen.getByText('Custom content')).toBeInTheDocument();
     });
@@ -49,7 +49,7 @@ describe('Modal', () => {
       render(
         <Modal {...defaultProps} footer={<button>Save</button>}>
           Content
-        </Modal>
+        </Modal>,
       );
       expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
     });
@@ -97,7 +97,7 @@ describe('Modal', () => {
   describe('interactions', () => {
     it('calls onClose when close button is clicked', () => {
       render(<Modal {...defaultProps} />);
-      const closeButton = screen.getByRole('button');
+      const closeButton = screen.getByRole('button', { name: 'Close dialog' });
       fireEvent.click(closeButton);
       expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
     });
@@ -177,13 +177,7 @@ describe('ConfirmDialog', () => {
     });
 
     it('renders custom button text', () => {
-      render(
-        <ConfirmDialog
-          {...defaultProps}
-          confirmText="Delete"
-          cancelText="Keep"
-        />
-      );
+      render(<ConfirmDialog {...defaultProps} confirmText="Delete" cancelText="Keep" />);
       expect(screen.getByRole('button', { name: 'Keep' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
     });

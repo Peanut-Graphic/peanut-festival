@@ -11,9 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `get_upcoming()` and inclusive `get_by_date_range()` show queries, including fail-closed handling for reversed ranges.
 
 ### Fixed
+
+- Reconciled the PHP 8.0 host floor with an exact PHP 8.1 development lock and executable CI contract checks.
 - Restored the standalone PHPUnit harness with faithful WordPress authentication, integer, option, and mail mocks.
 - Isolated Firebase singleton state between tests and removed obsolete PHP 8.5 reflection calls.
 - Replaced notification fallback and skipped show-query placeholders with behavioral regression tests.
+- Paired Vite 8 with its supported React plugin and repaired frontend lint, unit, and accessibility gates.
+- Improved keyboard and mobile accessibility for navigation, modals, form controls, and toast notifications.
+- Corrected the CI build-artifact path and made an empty upload fail closed.
 
 ## [1.3.0] - 2026-01-01
 

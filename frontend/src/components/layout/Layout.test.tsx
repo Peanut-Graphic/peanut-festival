@@ -12,7 +12,7 @@ describe('Layout', () => {
     renderWithRouter(
       <Layout>
         <div data-testid="child-content">Test Content</div>
-      </Layout>
+      </Layout>,
     );
 
     expect(screen.getByTestId('child-content')).toBeInTheDocument();
@@ -23,7 +23,7 @@ describe('Layout', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     // Check for main navigation items
@@ -41,7 +41,7 @@ describe('Layout', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     expect(screen.getByText('Festival')).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('Layout', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     // Find collapse button and click it
@@ -62,32 +62,32 @@ describe('Layout', () => {
 
     // When collapsed, nav text should be hidden (sidebar is w-16)
     const sidebar = document.querySelector('aside');
-    expect(sidebar).toHaveClass('w-16');
+    expect(sidebar).toHaveClass('md:w-16');
   });
 
   it('sidebar expands when collapse button is clicked again', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     const collapseButton = document.querySelector('button[class*="hover:bg-gray-100"]');
 
     // First click - collapse
     fireEvent.click(collapseButton!);
-    expect(document.querySelector('aside')).toHaveClass('w-16');
+    expect(document.querySelector('aside')).toHaveClass('md:w-16');
 
     // Second click - expand
     fireEvent.click(collapseButton!);
-    expect(document.querySelector('aside')).toHaveClass('w-56');
+    expect(document.querySelector('aside')).toHaveClass('md:w-56');
   });
 
   it('navigation links have correct href attributes', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     const dashboardLink = screen.getByText('Dashboard').closest('a');
@@ -110,7 +110,7 @@ describe('Layout', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     const festivalsLink = screen.getByText('Festivals').closest('a');
@@ -122,7 +122,7 @@ describe('Layout', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     const main = document.querySelector('main');
@@ -133,7 +133,7 @@ describe('Layout', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     // Collapse sidebar
@@ -151,7 +151,7 @@ describe('Layout', () => {
     renderWithRouter(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     // Each nav item should have an icon (svg element)
