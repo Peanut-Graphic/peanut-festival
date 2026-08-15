@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restored the standalone PHP harness, Firebase test isolation, and notification fallback coverage.
 - Paired Vite 8 with its supported React plugin and repaired frontend lint, unit, and accessibility gates.
 - Improved keyboard and mobile accessibility for navigation, modals, form controls, and toast notifications.
+- Corrected the CI build-artifact path and made an empty upload fail closed.
 
 ## [1.3.0] - 2026-01-01
 
