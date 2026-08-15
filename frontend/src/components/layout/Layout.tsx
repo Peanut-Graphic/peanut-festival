@@ -48,6 +48,12 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-gray-50 md:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only fixed left-3 top-3 z-[60] rounded-md bg-white px-4 py-3 text-sm font-semibold text-primary-700 shadow-lg focus:not-sr-only"
+      >
+        Skip to main content
+      </a>
       {/* Sidebar */}
       <aside
         className={`flex-shrink-0 flex flex-col border-b border-gray-200 bg-white transition-all duration-300 md:border-b-0 md:border-r ${
@@ -61,7 +67,7 @@ export function Layout({ children }: LayoutProps) {
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden rounded-lg p-1.5 hover:bg-gray-100 md:inline-flex"
+            className="hidden min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-gray-100 md:inline-flex"
             aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
           >
             <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
@@ -69,25 +75,26 @@ export function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-x-auto px-2 py-2 md:space-y-0.5 md:overflow-y-auto md:overflow-x-visible md:px-2 md:py-3">
+        <nav
+          aria-label="Festival management"
+          className="flex-1 overflow-x-auto px-2 py-2 md:space-y-0.5 md:overflow-y-auto md:overflow-x-visible md:px-2 md:py-3"
+        >
           <div className="flex gap-1 md:flex-col">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.href}
-              className={({ isActive }) =>
-                `flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                } ${collapsed ? 'md:justify-center' : ''}`
-              }
-              title={collapsed ? item.name : undefined}
-            >
-              <item.icon className="w-4 h-4 flex-shrink-0" />
-              {(!collapsed || typeof window === 'undefined') && <span className="md:inline">{item.name}</span>}
-            </NavLink>
-          ))}
+            {navigation.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-100'
+                  } ${collapsed ? 'md:justify-center' : ''}`
+                }
+                title={collapsed ? item.name : undefined}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {(!collapsed || typeof window === 'undefined') && <span className="md:inline">{item.name}</span>}
+              </NavLink>
+            ))}
           </div>
         </nav>
       </aside>

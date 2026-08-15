@@ -22,7 +22,11 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
       <div className="space-y-1">
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">
           {label}
-          {required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+          {required && (
+            <span className="text-red-500 ml-1" aria-hidden="true">
+              *
+            </span>
+          )}
         </label>
         <input
           ref={ref}
@@ -30,14 +34,22 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
           aria-required={required}
           aria-invalid={!!error}
           aria-describedby={describedBy}
-          className={`input w-full ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
+          className={`input w-full text-base sm:text-sm ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
           {...props}
         />
-        {hint && !error && <p id={hintId} className="text-xs text-gray-500">{hint}</p>}
-        {error && <p id={errorId} className="text-xs text-red-600" role="alert">{error}</p>}
+        {hint && !error && (
+          <p id={hintId} className="text-xs text-gray-500">
+            {hint}
+          </p>
+        )}
+        {error && (
+          <p id={errorId} className="text-xs text-red-600" role="alert">
+            {error}
+          </p>
+        )}
       </div>
     );
-  }
+  },
 );
 InputField.displayName = 'InputField';
 
@@ -56,7 +68,11 @@ export const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>
       <div className="space-y-1">
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">
           {label}
-          {required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+          {required && (
+            <span className="text-red-500 ml-1" aria-hidden="true">
+              *
+            </span>
+          )}
         </label>
         <textarea
           ref={ref}
@@ -64,14 +80,22 @@ export const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>
           aria-required={required}
           aria-invalid={!!error}
           aria-describedby={describedBy}
-          className={`input w-full min-h-[100px] ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
+          className={`input w-full min-h-[100px] text-base sm:text-sm ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
           {...props}
         />
-        {hint && !error && <p id={hintId} className="text-xs text-gray-500">{hint}</p>}
-        {error && <p id={errorId} className="text-xs text-red-600" role="alert">{error}</p>}
+        {hint && !error && (
+          <p id={hintId} className="text-xs text-gray-500">
+            {hint}
+          </p>
+        )}
+        {error && (
+          <p id={errorId} className="text-xs text-red-600" role="alert">
+            {error}
+          </p>
+        )}
       </div>
     );
-  }
+  },
 );
 TextareaField.displayName = 'TextareaField';
 
@@ -93,7 +117,11 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
       <div className="space-y-1">
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">
           {label}
-          {required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+          {required && (
+            <span className="text-red-500 ml-1" aria-hidden="true">
+              *
+            </span>
+          )}
         </label>
         <select
           ref={ref}
@@ -101,7 +129,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
           aria-required={required}
           aria-invalid={!!error}
           aria-describedby={describedBy}
-          className={`input w-full ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
+          className={`input w-full text-base sm:text-sm ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
           {...props}
         >
           {placeholder && <option value="">{placeholder}</option>}
@@ -111,11 +139,19 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
             </option>
           ))}
         </select>
-        {hint && !error && <p id={hintId} className="text-xs text-gray-500">{hint}</p>}
-        {error && <p id={errorId} className="text-xs text-red-600" role="alert">{error}</p>}
+        {hint && !error && (
+          <p id={hintId} className="text-xs text-gray-500">
+            {hint}
+          </p>
+        )}
+        {error && (
+          <p id={errorId} className="text-xs text-red-600" role="alert">
+            {error}
+          </p>
+        )}
       </div>
     );
-  }
+  },
 );
 SelectField.displayName = 'SelectField';
 
@@ -143,11 +179,15 @@ export const CheckboxField = forwardRef<HTMLInputElement, CheckboxFieldProps>(
         />
         <label htmlFor={id} className="cursor-pointer">
           <span className="text-sm font-medium text-gray-700">{label}</span>
-          {description && <p id={descId} className="text-xs text-gray-500">{description}</p>}
+          {description && (
+            <p id={descId} className="text-xs text-gray-500">
+              {description}
+            </p>
+          )}
         </label>
       </div>
     );
-  }
+  },
 );
 CheckboxField.displayName = 'CheckboxField';
 
@@ -202,7 +242,9 @@ export function StarRating({ label, value, onChange, max = 5 }: StarRatingProps)
 
   return (
     <div className="space-y-1">
-      <span id={groupId} className="block text-sm font-medium text-gray-700">{label}</span>
+      <span id={groupId} className="block text-sm font-medium text-gray-700">
+        {label}
+      </span>
       <div className="flex gap-1" role="group" aria-labelledby={groupId}>
         {[...Array(max)].map((_, i) => (
           <button
