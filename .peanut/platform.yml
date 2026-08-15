@@ -23,14 +23,14 @@ runtimes:
     baseline: WordPress compatibility matrix
     declarations:
       - { scope: dependency, source: peanut-festival.php, value: "Requires PHP 8.0" }
-      - { scope: dependency, source: composer.json, value: "development dependencies only; platform PHP 8.3" }
-      - { scope: ci, source: .github/workflows/ci.yml, value: "PHP 8.2" }
-      - { scope: ci, source: .github/workflows/tests.yml and wp-contract.yml, value: "PHP 8.2 and 8.3" }
+      - { scope: dependency, source: composer.json and composer.lock, value: "runtime require >=8.0; locked development resolver platform 8.1.0 for PHPUnit dependencies" }
+      - { scope: ci, source: .github/workflows/ci.yml, value: "required exact PHP 8.0 parser/declarations and exact PHP 8.1 full suite" }
+      - { scope: ci, source: .github/workflows/tests.yml and wp-contract.yml, value: "PHP 8.2 and 8.3 property plus PHP 8.3 real WordPress/MySQL" }
     production_observation: { status: verified, value: "PHP 8.5.9 on the central first-party installation; distributed client hosts unverified", observed_at: "2026-08-15T01:09:00-04:00", evidence: "read-only host interpreter and active-plugin inventory" }
   - name: node
     baseline: "22"
     declarations:
-      - { scope: dependency, source: frontend/package.json, value: "engines and packageManager missing; version 1.3.1" }
+      - { scope: dependency, source: frontend/package.json, value: "Vite 8.0.3 with compatible @vitejs/plugin-react 6.0.5; engines and packageManager missing; version 1.3.1" }
       - { scope: ci, source: .github/workflows/ci.yml and accessibility.yml, value: "Node 20" }
     production_observation: { status: not-applicable }
   - name: wordpress
@@ -87,13 +87,29 @@ distribution:
   rollback: unknown
 exceptions:
   - id: PAR-207
-    concern: PHP and JavaScript runtime declarations do not define one supported build and host matrix
-    reason: The plugin permits PHP 8.0, Composer resolves for PHP 8.3, CI spans PHP 8.2 and 8.3, the central first-party installation runs PHP 8.5.9, frontend CI uses Node 20, and frontend/package.json declares neither engines.node nor packageManager.
-    risk: Customer hosts, dependency resolution, CI, and release assets can exercise materially different runtimes and package-manager behavior.
+    concern: JavaScript runtime declarations remain below the fleet baseline
+    reason: PAR-207 reconciles the PHP 8.0 host floor, PHP 8.1 locked development floor, exact-minimum CI, and retained PHP 8.2/8.3/real-WordPress coverage; frontend CI uses Node 20, GitHub actions execute on Node 24, the fleet baseline is Node 22, and frontend/package.json declares neither engines.node nor packageManager.
+    risk: Local frontend builds, CI, and release assets can exercise materially different Node/npm versions.
     owner: Peanut Graphic
-    verification: Approve the supported WordPress PHP matrix, align the header and Composer platform declaration, exercise every supported PHP lane, and pin fleet Node and npm versions.
+    verification: Pin fleet Node and npm versions and execute all frontend gates on the declared versions.
     review_date: "2026-11-14"
-    status: proposed
+    status: accepted
+  - id: PAR-503
+    concern: Required legacy PHP and frontend gates were red on the exact audited base
+    reason: The standalone PHP harness lacked current WordPress authentication and integer mocks and leaked Firebase singleton state, while Vite 8 was locked against an incompatible React plugin 4 and accessibility tests imported nonexistent default components; the source repair restores faithful mocks, test isolation, the supported Vite 8/plugin-react 6 pair, and behavior-based tests against the real component APIs.
+    risk: Resolved in the candidate source; without the repair, CI fails before meaningful frontend evidence and reports harness and import errors unrelated to installed WordPress behavior.
+    owner: Peanut Graphic
+    verification: Require clean install, full PHP and frontend suites, accessibility lint/tests, typecheck, build, property matrices, and real WordPress/MySQL on the exact pull-request and main revisions.
+    review_date: "2026-08-22"
+    status: accepted
+  - id: PAR-505
+    concern: Frontend dependency audit remains red after the compatibility repair
+    reason: A clean install reports 9 production vulnerability paths (4 high and 5 moderate) and 15 total paths (10 high and 5 moderate), including direct axios, DOMPurify, React Router, PostCSS, and Vite findings plus transitives; the Vite/plugin-react repair does not silently broaden into an application-wide dependency migration.
+    risk: Known client and build dependency advisories remain until each direct upgrade and transitive graph change is source-audited and regression-tested.
+    owner: Peanut Graphic
+    verification: Reconcile direct dependency versions in a dedicated repair, run both production-only and full npm audits, and require clean lint, typecheck, unit, accessibility, and build gates on the exact revision.
+    review_date: "2026-08-22"
+    status: accepted
   - id: PAR-306
     concern: Distributed host databases include MariaDB but required CI exercises only MySQL 8
     reason: The plugin declares MySQL 5.7+ and MariaDB 10.3+, creates many dbDelta tables, and runs sequential ALTER TABLE migrations during ordinary plugin boot. The central first-party installation runs MariaDB 10.6.27 with latin1_swedish_ci and a non-strict SQL mode, while the only real WordPress lane uses mysql:8 and distributed client hosts remain unverified.
@@ -136,12 +152,20 @@ exceptions:
     status: retired
 verification:
   status: live-verified
-  audited_commit: 472716d70928eba3ed55b477424e2080694a113c
+  audited_commit: 95c9a2623bb0de3b7e41ef1e0072bf0370068323
   last_reviewed: "2026-08-15"
   sources:
     - peanut-festival.php
     - composer.json
+    - composer.lock
     - frontend/package.json
+    - frontend/package-lock.json
+    - frontend/eslint.config.js
+    - frontend/src/components/common/FormFields.tsx
+    - frontend/src/components/common/Modal.tsx
+    - frontend/src/components/common/Toast.tsx
+    - frontend/src/components/layout/Layout.tsx
+    - frontend/src/test/accessibility/components.a11y.test.tsx
     - includes/class-activator.php
     - includes/class-migrations.php
     - includes/class-firebase.php
@@ -156,6 +180,10 @@ verification:
     - .github/workflows/tests.yml
     - .github/workflows/accessibility.yml
     - .github/workflows/wp-contract.yml
+    - scripts/verify-runtime-contract.php
+    - tests/php/bootstrap.php
+    - tests/php/FirebaseTest.php
+    - tests/php/NotificationsTest.php
     - Peanut-Graphic/peanut-meta:scripts/publish-plugin.sh
     - GitHub Release v1.3.1 ZIP metadata and contents
     - Peanut License Server /updates/check response for peanut-festival
@@ -164,7 +192,7 @@ verification:
   outstanding:
     - Inventory supported distributed client-host PHP, WordPress, database, scheduler, Firebase, payment, and third-party contracts without collecting customer data.
     - Reconcile why the central minute queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks are not registered.
-    - Align and pin PHP, Node, and npm declarations under PAR-207 and PAR-205.
+    - Align and pin Node and npm declarations under PAR-205.
     - Add supported MariaDB and older-MySQL activation/migration/real-WordPress lanes under PAR-306.
     - Inventory and govern Firebase production state under PAR-310.
     - Add Festival to the signed publisher and authenticated update path under PAR-401 and PAR-407.

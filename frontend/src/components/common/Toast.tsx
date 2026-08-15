@@ -67,17 +67,23 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      <div
+        className="fixed inset-x-3 bottom-3 z-50 flex flex-col gap-2 sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-full sm:max-w-sm"
+        aria-live="polite"
+        aria-atomic="false"
+      >
         {toasts.map((toast) => (
           <div
             key={toast.id}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg animate-slide-in ${styles[toast.type]}`}
+            role={toast.type === 'error' ? 'alert' : 'status'}
           >
             {icons[toast.type]}
             <p className="text-sm text-gray-700">{toast.message}</p>
             <button
               onClick={() => removeToast(toast.id)}
-              className="ml-2 text-gray-400 hover:text-gray-600"
+              className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center text-gray-400 hover:text-gray-600"
+              aria-label={`Dismiss notification: ${toast.message}`}
             >
               <X className="w-4 h-4" />
             </button>

@@ -5,6 +5,15 @@ All notable changes to the Peanut Festival plugin will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Reconciled the PHP 8.0 host floor with an exact PHP 8.1 development lock and executable CI contract checks.
+- Restored the standalone PHP harness, Firebase test isolation, and notification fallback coverage.
+- Paired Vite 8 with its supported React plugin and repaired frontend lint, unit, and accessibility gates.
+- Improved keyboard and mobile accessibility for navigation, modals, form controls, and toast notifications.
+
 ## [1.3.0] - 2026-01-01
 
 ### Added
