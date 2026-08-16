@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-07-19
+
+### Security
+- Moved Stripe keys out of the codebase and into environment variables.
+- Hardened the REST API and the voting system, including SQL-injection
+  prevention around votes, and hardened the flyer generator.
+
+### Fixed
+- PHP 8.4 implicit-nullable parameter deprecations in the Mailchimp, Performers
+  and Flyer paths.
+- Search input icon overlap on the Attendees page.
+
+### Changed
+- Split the REST API admin surface into focused traits, and competitions into
+  separate class files.
+- Added performance indexes for the votes and transactions tables.
+
+### Added
+- Frontend test coverage to roughly 80%, including Shows, Venues and ShowForm
+  component suites, plus security tests for the voting system.
+- Security, database and developer guides.
+
+
 ### Added
 - Added `get_upcoming()` and inclusive `get_by_date_range()` show queries, including fail-closed handling for reversed ranges.
 

@@ -22,6 +22,57 @@ define('PEANUT_FESTIVAL_PATH', plugin_dir_path(__FILE__));
 define('PEANUT_FESTIVAL_URL', plugin_dir_url(__FILE__));
 define('PEANUT_FESTIVAL_BASENAME', plugin_basename(__FILE__));
 
+// Ed25519 public key that Peanut release packages are signed with — the key the
+// central publisher (Peanut-meta/scripts/publish-plugin.sh) signs manifests
+// against.
+define('PEANUT_FESTIVAL_SIGNING_PUBKEY', 'NtHnWTBLVzCBKMAq9CO8LHDSD9ZfpGV0UloQdgToIwM=');
+
+// Composer autoload — bundles peanut/formflow-core, which carries the shared
+// signed-update verifier. Guarded so a missing vendor/ degrades to an admin
+// notice instead of a fatal.
+if (file_exists(PEANUT_FESTIVAL_PATH . 'vendor/autoload.php')) {
+    require_once PEANUT_FESTIVAL_PATH . 'vendor/autoload.php';
+}
+
+/**
+ * Refuse to install an update package that is not cryptographically ours.
+ *
+ * Festival had no updater and no signature gate at all: v1.3.1 shipped as a
+ * standalone unsigned ZIP with no manifest, and the live update API did not
+ * even recognise the slug. Whatever a site was handed, it installed, on
+ * transport trust alone.
+ *
+ * The gate downloads the package, fetches its `.manifest.json` sidecar, and
+ * verifies sha256 plus a detached Ed25519 signature before WordPress installs
+ * anything. It is FAIL-CLOSED: an unsigned or unverifiable package is refused.
+ *
+ * NOTE: every Festival release from here on must go through
+ * Peanut-meta/scripts/publish-plugin.sh, which signs and ships the manifest.
+ * An unsigned release will be correctly refused by every install running this.
+ */
+function peanut_festival_register_update_gate(): void {
+    if (!class_exists('\Peanut\FormCore\Update\SignedUpdateGate')) {
+        add_action('admin_notices', function () {
+            if (!current_user_can('update_plugins')) {
+                return;
+            }
+            echo '<div class="notice notice-error"><p><strong>Peanut Festival:</strong> '
+                . esc_html__('update signature verification is unavailable (formflow-core missing from vendor/). Updates are NOT being verified — reinstall from an official release package.', 'peanut-festival')
+                . '</p></div>';
+        });
+
+        return;
+    }
+
+    (new \Peanut\FormCore\Update\SignedUpdateGate(
+        PEANUT_FESTIVAL_BASENAME,
+        ['peanutgraphic.com', 'github.com'],
+        PEANUT_FESTIVAL_SIGNING_PUBKEY,
+        'peanut-festival'
+    ))->register();
+}
+add_action('plugins_loaded', 'peanut_festival_register_update_gate', 1);
+
 // Load activator/deactivator early (needed for activation hooks)
 require_once PEANUT_FESTIVAL_PATH . 'includes/class-activator.php';
 require_once PEANUT_FESTIVAL_PATH . 'includes/class-deactivator.php';
