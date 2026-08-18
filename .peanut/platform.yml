@@ -46,7 +46,7 @@ databases:
     declarations:
       - { scope: documentation, source: docs/DEPLOYMENT.md, value: "MySQL 5.7+ or MariaDB 10.3+" }
       - { scope: dependency, source: includes/class-activator.php and includes/class-migrations.php, value: "many dbDelta tables plus sequential versioned ALTER TABLE migrations during normal plugin boot" }
-      - { scope: ci, source: .github/workflows/wp-contract.yml, value: "mysql:8 real WordPress REST contract lane" }
+      - { scope: ci, source: .github/workflows/wp-contract.yml, value: "mysql:8 compatibility and mariadb:10.6 production-family real WordPress contract lanes; the declared MySQL 5.7 and MariaDB 10.3 minimums are not exercised" }
     production_equivalent_test: "yes"
     production_observation: { status: verified, value: "MariaDB 10.6.27, latin1_swedish_ci server collation, SQL mode ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION on the central first-party installation; distributed client hosts unverified", observed_at: "2026-08-15T01:09:00-04:00", evidence: "read-only database metadata query; no application rows read" }
   - name: firebase-realtime-database
@@ -111,11 +111,11 @@ exceptions:
     review_date: "2026-08-22"
     status: accepted
   - id: PAR-306
-    concern: Distributed host databases include MariaDB but required CI exercises only MySQL 8
-    reason: The plugin declares MySQL 5.7+ and MariaDB 10.3+, creates many dbDelta tables, and runs sequential ALTER TABLE migrations during ordinary plugin boot. The central first-party installation runs MariaDB 10.6.27 with latin1_swedish_ci and a non-strict SQL mode, while the only real WordPress lane uses mysql:8 and distributed client hosts remain unverified.
-    risk: MariaDB- and older-MySQL-specific DDL, index, collation, migration, or transactional behavior can fail on festival sites without appearing in the required gate.
+    concern: The declared MySQL 5.7 and MariaDB 10.3 minimums are still not exercised, and client hosts remain unverified
+    reason: Real WordPress contracts now run on MySQL 8 and the central installation's MariaDB 10.6 family, covering the many dbDelta tables and the sequential ALTER TABLE migrations this plugin runs during ordinary plugin boot. The plugin still declares support for MySQL 5.7+ and MariaDB 10.3+, so both declared floors sit below every lane that runs, and distributed festival-site versions, collations, SQL modes, and upgrade histories remain unknown.
+    risk: DDL, index, collation, migration, or transactional behavior specific to an older declared engine, or to a client-specific collation or SQL mode, can still fail on festival sites without appearing in the required gate.
     owner: Peanut Graphic
-    verification: Run activation, sequential upgrade, and real-WordPress contracts against every supported MySQL and MariaDB lane.
+    verification: Keep both lanes green; then either add lanes at the declared MySQL 5.7 and MariaDB 10.3 floors or raise the declared minimums to what CI actually proves.
     review_date: "2026-11-14"
     status: accepted
   - id: PAR-310
@@ -201,6 +201,6 @@ verification:
     - Inventory supported distributed client-host PHP, WordPress, database, scheduler, Firebase, payment, and third-party contracts without collecting customer data.
     - Reconcile why the central minute queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks are not registered.
     - Align and pin Node and npm declarations under PAR-205.
-    - Add supported MariaDB and older-MySQL activation/migration/real-WordPress lanes under PAR-306.
+    - Cover the declared MySQL 5.7 and MariaDB 10.3 floors, or raise the declared minimums to what CI proves, under PAR-306.
     - Inventory and govern Firebase production state under PAR-310.
     - Add Festival to the signed publisher and authenticated update path under PAR-401 and PAR-407.
