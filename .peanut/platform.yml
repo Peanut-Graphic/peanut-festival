@@ -30,7 +30,7 @@ runtimes:
   - name: node
     baseline: "22"
     declarations:
-      - { scope: dependency, source: frontend/package.json, value: "Vite 8.0.3 with compatible @vitejs/plugin-react 6.0.5; engines and packageManager missing; version 1.3.1" }
+      - { scope: dependency, source: frontend/package.json, value: "Vite 8.2.1 with compatible @vitejs/plugin-react 6.0.5; engines and packageManager missing; version 1.3.1" }
       - { scope: ci, source: .github/workflows/ci.yml and accessibility.yml, value: "Node 20" }
     production_observation: { status: not-applicable }
   - name: wordpress
