@@ -3,7 +3,7 @@
  * Plugin Name: Peanut Festival
  * Plugin URI: https://peanut.graphics/festival
  * Description: Comprehensive festival organization platform for producers, performers, venues, volunteers, vendors, sponsors, and attendees.
- * Version: 1.3.1
+ * Version: 1.3.2
  * Author: Peanut Graphics
  * Author URI: https://peanut.graphics
  * License: GPL v2 or later
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('PEANUT_FESTIVAL_VERSION', '1.3.1');
+define('PEANUT_FESTIVAL_VERSION', '1.3.2');
 define('PEANUT_FESTIVAL_PATH', plugin_dir_path(__FILE__));
 define('PEANUT_FESTIVAL_URL', plugin_dir_url(__FILE__));
 define('PEANUT_FESTIVAL_BASENAME', plugin_basename(__FILE__));
