@@ -83,6 +83,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit production dependencies at the fleet moderate floor
+        run: npm audit --omit=dev --audit-level=moderate
+
       - name: TypeScript check
         run: npm run typecheck
 

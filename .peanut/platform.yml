@@ -103,13 +103,13 @@ exceptions:
     review_date: "2026-08-22"
     status: accepted
   - id: PAR-505
-    concern: Frontend dependency audit remains red after the compatibility repair
-    reason: A clean install reports 9 production vulnerability paths (4 high and 5 moderate) and 15 total paths (10 high and 5 moderate), including direct axios, DOMPurify, React Router, PostCSS, and Vite findings plus transitives; the Vite/plugin-react repair does not silently broaden into an application-wide dependency migration.
-    risk: Known client and build dependency advisories remain until each direct upgrade and transitive graph change is source-audited and regression-tested.
+    concern: Frontend dependency security baseline required continuous enforcement
+    reason: The repaired lock and current Dependabot feed report zero vulnerabilities. The frontend lint/typecheck job now performs a clean locked install and fails on moderate-or-higher production advisories on pull requests and exact main before downstream tests and build can run.
+    risk: Retired; a new moderate production advisory now fails the owning frontend workflow instead of relying on periodic reporting.
     owner: Peanut Graphic
-    verification: Reconcile direct dependency versions in a dedicated repair, run both production-only and full npm audits, and require clean lint, typecheck, unit, accessibility, and build gates on the exact revision.
+    verification: Keep the blocking moderate production audit and Dependabot feed green; handle any new advisory through an exact, time-bounded ADV exception rather than weakening the fleet floor.
     review_date: "2026-08-22"
-    status: accepted
+    status: retired
   - id: PAR-306
     concern: The declared MySQL 5.7 and MariaDB 10.3 minimums are still not exercised, and client hosts remain unverified
     reason: Real WordPress contracts now run on MySQL 8 and the central installation's MariaDB 10.6 family, covering the many dbDelta tables and the sequential ALTER TABLE migrations this plugin runs during ordinary plugin boot. The plugin still declares support for MySQL 5.7+ and MariaDB 10.3+, so both declared floors sit below every lane that runs, and distributed festival-site versions, collations, SQL modes, and upgrade histories remain unknown.
@@ -160,8 +160,8 @@ exceptions:
     status: retired
 verification:
   status: live-verified
-  audited_commit: 95c9a2623bb0de3b7e41ef1e0072bf0370068323
-  last_reviewed: "2026-08-15"
+  audited_commit: b6fef6d258e536a2fbfd31125f09c1d1a0a5ba3c
+  last_reviewed: "2026-08-22"
   sources:
     - peanut-festival.php
     - composer.json
@@ -201,6 +201,7 @@ verification:
     - Inventory supported distributed client-host PHP, WordPress, database, scheduler, Firebase, payment, and third-party contracts without collecting customer data.
     - Reconcile why the central minute queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks are not registered.
     - Align and pin Node and npm declarations under PAR-205.
+    - Keep the blocking moderate frontend dependency audit and current zero-vulnerability baseline green under PAR-508/PAR-505.
     - Cover the declared MySQL 5.7 and MariaDB 10.3 floors, or raise the declared minimums to what CI proves, under PAR-306.
     - Inventory and govern Firebase production state under PAR-310.
     - Add Festival to the signed publisher and authenticated update path under PAR-401 and PAR-407.
