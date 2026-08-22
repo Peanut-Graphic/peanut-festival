@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-08-21
+
+### Security
+- Refused unsigned or tampered update packages and removed the Firebase
+  public-API-key fallback from server-side writes.
+- Upgraded the frontend dependency tree to patched releases, including
+  `react-router-dom`, and recompiled the tracked assets from that graph.
+
+### Fixed
+- Restored the regression harness and guarded upcoming/date-range show queries,
+  including fail-closed handling for reversed ranges.
+- Improved mobile festival-management surfaces and form accessibility.
+
+### Changed
+- Added repository-owned runtime, platform-manifest, release-readiness,
+  dependency-audit, MariaDB, real-WordPress, and build-artifact gates.
+
 ## [1.3.1] - 2026-07-19
 
 ### Security
