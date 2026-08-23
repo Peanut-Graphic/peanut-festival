@@ -119,13 +119,13 @@ exceptions:
     review_date: "2026-11-14"
     status: accepted
   - id: PAR-310
-    concern: Optional Firebase production ownership and release boundary are install-specific and unverified
-    reason: The plugin can write/delete Realtime Database state and send Cloud Messaging notifications using operator-supplied service credentials, while rules deployment and project setup are manual and no repository workflow proves project, revision, backup, health, or rollback state. Central Firebase configuration was deliberately not inspected; only the match-deadline hook is registered, while the minute job queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks are absent.
-    risk: WordPress releases, Firebase rules/configuration, and live realtime data can drift independently without a single auditable owner or rollback contract.
+    concern: Per-install Firebase production evidence remains unverified behind a documented ownership boundary
+    reason: docs/FIREBASE-OWNERSHIP.md now defines the optional Realtime Database/Cloud Messaging role, separates it from the shared Peanut Suite backend, assigns repository-versus-installation ownership, and makes plugin and Firebase promotions independent. No repository workflow can yet prove any installation's exact project, rules revision, backup, health, or rollback state.
+    risk: An installation can still drift from reviewed rules or lack recovery evidence until its project-specific inventory is completed.
     owner: Peanut Graphic
-    verification: Inventory active Firebase projects and rules revisions, document data ownership/backups and fail-closed credentials, and define whether Firebase changes ship with or independently from the plugin.
+    verification: For each installation, record the exact project owner, rules digest, credential owner, data retention/export/restore contract, plugin compatibility, health evidence, and rollback action without collecting customer data.
     review_date: "2026-11-14"
-    status: proposed
+    status: accepted
   - id: PAR-401
     concern: Peanut Festival is absent from the canonical signed publisher
     reason: Peanut Meta publish-plugin.sh has no peanut-festival case, while the latest v1.3.1 release is an unsigned standalone ZIP with no manifest, canary, or rollback evidence and predates substantial main-branch security and CI changes.
@@ -183,6 +183,7 @@ verification:
     - includes/class-mailchimp.php
     - includes/class-ml-festival-predictor.php
     - docs/DEPLOYMENT.md
+    - docs/FIREBASE-OWNERSHIP.md
     - firebase/database.rules.json
     - .github/workflows/ci.yml
     - .github/workflows/tests.yml
@@ -208,5 +209,5 @@ verification:
     - Keep the blocking moderate frontend dependency audit and current zero-vulnerability baseline green under PAR-508/PAR-505.
     - Keep Composer, the frontend production lock, the hash-locked auditor, and the platform-validator lock blocking-audited under PAR-508; all four surfaces are zero-finding at this review.
     - Cover the declared MySQL 5.7 and MariaDB 10.3 floors, or raise the declared minimums to what CI proves, under PAR-306.
-    - Inventory and govern Firebase production state under PAR-310.
+    - Complete the documented project-specific Firebase evidence inventory before any production rules/configuration promotion; keep all Firebase operations separately approval-bound.
     - Add Festival to the signed publisher and authenticated update path under PAR-401 and PAR-407.
