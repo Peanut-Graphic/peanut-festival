@@ -160,8 +160,8 @@ exceptions:
     status: retired
 verification:
   status: live-verified
-  audited_commit: b6fef6d258e536a2fbfd31125f09c1d1a0a5ba3c
-  last_reviewed: "2026-08-22"
+  audited_commit: 975be70d6d7b71563d031b3871449f8ebf898845
+  last_reviewed: "2026-08-23"
   sources:
     - peanut-festival.php
     - composer.json
@@ -187,6 +187,10 @@ verification:
     - .github/workflows/ci.yml
     - .github/workflows/tests.yml
     - .github/workflows/accessibility.yml
+    - .github/workflows/dependency-audit.yml
+    - requirements-dependency-audit.txt
+    - requirements-dependency-audit.lock
+    - .peanut/platform/requirements.lock
     - .github/workflows/wp-contract.yml
     - scripts/verify-runtime-contract.php
     - tests/php/bootstrap.php
@@ -202,6 +206,7 @@ verification:
     - Reconcile why the central minute queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks are not registered.
     - Align and pin Node and npm declarations under PAR-205.
     - Keep the blocking moderate frontend dependency audit and current zero-vulnerability baseline green under PAR-508/PAR-505.
+    - Keep Composer, the frontend production lock, the hash-locked auditor, and the platform-validator lock blocking-audited under PAR-508; all four surfaces are zero-finding at this review.
     - Cover the declared MySQL 5.7 and MariaDB 10.3 floors, or raise the declared minimums to what CI proves, under PAR-306.
     - Inventory and govern Firebase production state under PAR-310.
     - Add Festival to the signed publisher and authenticated update path under PAR-401 and PAR-407.

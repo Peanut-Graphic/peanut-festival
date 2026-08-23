@@ -1,8 +1,8 @@
 # Peanut Festival — test + security gate (Testing Protocol v2 nets)
 #
 # Realistic scope: the property (net 6) suite is PURE PHP and needs no WordPress
-# boot, so it is the blocking gate. composer audit (net 2) runs non-blocking for
-# now and is wired to ratchet to blocking later.
+# boot, so it is the blocking behavior gate. Composer audit (net 2) is also
+# blocking and fails the workflow on any advisory or transport error.
 name: tests
 
 on:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   security:
-    name: Net 2 — dependency audit (non-blocking)
+    name: Net 2 — dependency audit (blocking)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,8 +22,7 @@ jobs:
           tools: composer
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
-      - name: composer audit
-        # Start non-blocking; ratchet to blocking once the tree is clean.
+      - name: Composer audit (blocking)
         run: composer audit --no-interaction
 
   php-tests:
