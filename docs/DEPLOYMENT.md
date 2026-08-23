@@ -118,6 +118,8 @@ For non-sensitive settings, use the WordPress admin:
 
 ## Firebase Setup
 
+Read [Firebase Ownership and End State](FIREBASE-OWNERSHIP.md) before configuring an installation. The commands below describe operator mechanics; they do not authorize Firebase login, project creation, rules deployment, credential changes, or live-data access.
+
 ### 1. Create Firebase Project
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
