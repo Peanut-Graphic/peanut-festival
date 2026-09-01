@@ -30,8 +30,8 @@ runtimes:
   - name: node
     baseline: "22"
     declarations:
-      - { scope: dependency, source: frontend/package.json, value: "Vite 8.2.1 with compatible @vitejs/plugin-react 6.0.5; engines and packageManager missing; version 1.3.1" }
-      - { scope: ci, source: .github/workflows/ci.yml and accessibility.yml, value: "Node 20" }
+      - { scope: dependency, source: frontend/package.json and package-lock.json, value: "exact Node 22.22.2 and npm 10.9.7; packageManager npm@10.9.7; Vite 8.2.1 with compatible @vitejs/plugin-react 6.0.5; version 1.3.2" }
+      - { scope: ci, source: .github/workflows/ci.yml and accessibility.yml, value: "exact Node 22.22.2 and npm 10.9.7 with source-owned declaration/runtime guard in all four frontend jobs" }
     production_observation: { status: not-applicable }
   - name: wordpress
     baseline: WordPress 6.0+
@@ -86,14 +86,14 @@ distribution:
   canary: unknown
   rollback: unknown
 exceptions:
-  - id: PAR-207
-    concern: JavaScript runtime declarations remain below the fleet baseline
-    reason: PAR-207 reconciles the PHP 8.0 host floor, PHP 8.1 locked development floor, exact-minimum CI, and retained PHP 8.2/8.3/real-WordPress coverage; frontend CI uses Node 20, GitHub actions execute on Node 24, the fleet baseline is Node 22, and frontend/package.json declares neither engines.node nor packageManager.
-    risk: Local frontend builds, CI, and release assets can exercise materially different Node/npm versions.
+  - id: PAR-205
+    concern: JavaScript runtime declarations were below the fleet baseline
+    reason: Retired. Frontend package and lock metadata, packageManager, .nvmrc, all four frontend workflow jobs, and the source-owned runtime guard agree on exact Node 22.22.2 and npm 10.9.7.
+    risk: Retired; declaration or active CI runtime drift now fails before dependency installation.
     owner: Peanut Graphic
-    verification: Pin fleet Node and npm versions and execute all frontend gates on the declared versions.
-    review_date: "2026-11-14"
-    status: accepted
+    verification: Require the source-owned declaration contract plus exact active Node/npm verification in every frontend job.
+    review_date: "2026-08-31"
+    status: retired
   - id: PAR-503
     concern: Required legacy PHP and frontend gates were red on the exact audited base
     reason: Retired. Exact main 5fe0bf2 retains the faithful WordPress mocks and Firebase isolation, compatible Vite 8/plugin-react 6 lock, behavior-based accessibility tests, and correct frontend artifact path. All six current-main workflows pass, including full PHP/frontend suites, accessibility, property matrices, dependency audits, and real WordPress contracts on MySQL and MariaDB.
@@ -194,6 +194,7 @@ verification:
     - .peanut/platform/requirements.lock
     - .github/workflows/wp-contract.yml
     - scripts/verify-runtime-contract.php
+    - scripts/verify-node-runtime-contract.cjs and .nvmrc
     - tests/php/bootstrap.php
     - tests/php/FirebaseTest.php
     - tests/php/NotificationsTest.php
@@ -207,7 +208,7 @@ verification:
   outstanding:
     - Inventory supported distributed client-host PHP, WordPress, database, scheduler, Firebase, payment, and third-party contracts without collecting customer data.
     - Reconcile why the central minute queue, weekly ML training, daily cleanup, and Eventbrite cleanup hooks are not registered.
-    - Align and pin Node and npm declarations under PAR-205.
+    - Keep exact Node 22.22.2/npm 10.9.7 declarations and the source-owned runtime guard green under PAR-205.
     - Keep the blocking moderate frontend dependency audit and current zero-vulnerability baseline green under PAR-508/PAR-505.
     - Keep Composer, the frontend production lock, the hash-locked auditor, and the platform-validator lock blocking-audited under PAR-508; all four surfaces are zero-finding at this review.
     - Cover the declared MySQL 5.7 and MariaDB 10.3 floors, or raise the declared minimums to what CI proves, under PAR-306.

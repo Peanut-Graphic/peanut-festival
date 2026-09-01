@@ -107,8 +107,8 @@ The plugin creates custom roles with specific capabilities:
 
 - PHP 8.1+ for Composer dependencies and test tooling
 - Composer
-- Node.js 18+
-- npm
+- Node.js 22.22.2
+- npm 10.9.7 (use nvm use from the repository root)
 
 ### Setup
 
@@ -120,9 +120,10 @@ cd peanut-festival
 # Install PHP dependencies
 composer install
 
-# Install frontend dependencies
+# Select the exact frontend runtime and install locked dependencies
+nvm use
 cd frontend
-npm install
+npm ci
 
 # Build frontend assets
 npm run build
