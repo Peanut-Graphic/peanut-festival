@@ -1,5 +1,7 @@
 # Peanut Festival
 
+> **Dependency updates:** `renovate.json` extends `local>peanutgraphic/renovate-config`, but Renovate is not installed on the Peanut-Graphic GitHub org, so it has never opened a PR here. `.github/dependabot.yml` provides automated dependency PRs instead — see that file to add/adjust ecosystems.
+
 A comprehensive WordPress plugin for managing community festivals, including performer management, scheduling, ticketing, voting, volunteers, and vendors.
 
 ## Features
