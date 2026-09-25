@@ -69,15 +69,15 @@ foreach ([
 }
 
 if (!is_array($frontend)
-    || ($frontend['devDependencies']['vite'] ?? null) !== '^8.0.16'
-    || ($frontend['devDependencies']['@vitejs/plugin-react'] ?? null) !== '^6.0.5') {
+    || ($frontend['devDependencies']['vite'] ?? null) !== '^8.3.0'
+    || ($frontend['devDependencies']['@vitejs/plugin-react'] ?? null) !== '^6.1.1') {
     $failures[] = 'frontend package declarations must retain Vite 8 with compatible React plugin 6';
 }
 
 $lockedPlugin = $frontendLock['packages']['node_modules/@vitejs/plugin-react']['version'] ?? null;
 $lockedVite = $frontendLock['packages']['node_modules/vite']['version'] ?? null;
-if ($lockedPlugin !== '6.0.5' || $lockedVite !== '8.2.1') {
-    $failures[] = 'frontend lock must contain React plugin 6.0.5 with Vite 8.0.3';
+if ($lockedPlugin !== '6.1.1' || $lockedVite !== '8.3.0') {
+    $failures[] = 'frontend lock must contain React plugin 6.1.1 with Vite 8.3.0';
 }
 
 $argument = $argv[1] ?? '';
