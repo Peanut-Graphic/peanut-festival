@@ -96,6 +96,47 @@ describe('wp-admin cascade', () => {
         expect(indexCss).not.toMatch(/^\.(input|btn|pf-card|badge|table)\b/m);
     });
 
+    it('restores the standalone text baseline inside wp-admin only', () => {
+        // wp-admin: `body { font-size: 13px; line-height: 1.4em }` and
+        // `#wpwrap { -webkit-font-smoothing: subpixel-... }`. App text
+        // without a text-* class (dashboard rows, Shows card titles) rendered
+        // at 13px with subpixel smoothing instead of 16px antialiased.
+        const root = postcss.parse(readFileSync(join(srcDir, 'styles/wp-admin-compat.css'), 'utf8'));
+        const decls = (selector: string) => {
+            const out: Record<string, string> = {};
+            root.walkRules((rule) => {
+                if (rule.selector === selector) rule.walkDecls((d) => void (out[d.prop] = d.value));
+            });
+            return out;
+        };
+
+        const base = decls('.peanut-festival-fullscreen-app');
+        expect(base['font-size']).toBe('1rem');
+        expect(base['line-height']).toBe('1.5');
+        // Split so Tailwind's source scan does not emit unused utilities
+        // for these words (it scans this file for class candidates).
+        expect(base['-webkit-font-smoothing']).toBe(['anti', 'aliased'].join(''));
+        expect(base['-moz-osx-font-smoothing']).toBe(['gray', 'scale'].join(''));
+        expect(base['font-family']).toMatch(/^var\(\s*--default-font-family/);
+
+        // The container is rendered only by the wp-admin page, so the rule
+        // is a no-op in the standalone build.
+        const php = readFileSync(adminPagesPhp, 'utf8');
+        expect(php).toMatch(/<div class="peanut-festival-fullscreen-app">\s*<div id="peanut-festival-app">/);
+        const indexHtml = readFileSync(resolve(srcDir, '../index.html'), 'utf8');
+        expect(indexHtml).not.toContain('peanut-festival-fullscreen-app');
+
+        // wp-admin `p { font-size: 13px }` and `h1, h2, h3 { color: #1d2327 }`
+        // are reset at element specificity (:where), so app classes still win.
+        expect(decls(':where(.peanut-festival-fullscreen-app) p')).toEqual({
+            'font-size': 'inherit',
+            'line-height': 'inherit',
+        });
+        expect(decls(':where(.peanut-festival-fullscreen-app) :is(h1, h2, h3)')).toEqual({
+            color: 'inherit',
+        });
+    });
+
     it('wires the html-prefix plugin into the PostCSS config', () => {
         const config = readFileSync(resolve(srcDir, '../postcss.config.js'), 'utf8');
         expect(config).toMatch(/plugins:\s*\[\s*tailwindcss\(\),\s*wpAdminSpecificity\(\)\s*\]/);
