@@ -1,0 +1,60 @@
+/*
+  Tailwind v3 `space-y-*` semantics (loaded after utilities).
+
+  v4 spaces children with margin-bottom on every child except the last; v3
+  used margin-top on every child after the first, with enough specificity to
+  beat other margin-top rules. Inside wp-admin that difference shows (WP's
+  own `.card { margin-top: 20px }` is no longer overridden), so restore v3.
+  The `:not(.fixed)` exception deliberately keeps one v4 improvement: fixed
+  modal overlays rendered inside a space-y container no longer get a stray
+  top margin that left a strip of the page undimmed.
+*/
+:where(.space-y-1 > :not(:last-child)) {
+    margin-block-end: 0;
+}
+
+.space-y-1 > :not([hidden]) ~ :not([hidden]):not(.fixed) {
+    margin-top: 0.25rem;
+}
+
+:where(.space-y-2 > :not(:last-child)) {
+    margin-block-end: 0;
+}
+
+.space-y-2 > :not([hidden]) ~ :not([hidden]):not(.fixed) {
+    margin-top: 0.5rem;
+}
+
+:where(.space-y-3 > :not(:last-child)) {
+    margin-block-end: 0;
+}
+
+.space-y-3 > :not([hidden]) ~ :not([hidden]):not(.fixed) {
+    margin-top: 0.75rem;
+}
+
+:where(.space-y-4 > :not(:last-child)) {
+    margin-block-end: 0;
+}
+
+.space-y-4 > :not([hidden]) ~ :not([hidden]):not(.fixed) {
+    margin-top: 1rem;
+}
+
+:where(.space-y-6 > :not(:last-child)) {
+    margin-block-end: 0;
+}
+
+.space-y-6 > :not([hidden]) ~ :not([hidden]):not(.fixed) {
+    margin-top: 1.5rem;
+}
+
+@media (width >= 48rem) {
+    :where(.md\:space-y-0\.5 > :not(:last-child)) {
+        margin-block-end: 0;
+    }
+
+    .md\:space-y-0\.5 > :not([hidden]) ~ :not([hidden]):not(.fixed) {
+        margin-top: 0.125rem;
+    }
+}
