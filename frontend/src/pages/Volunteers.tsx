@@ -129,7 +129,7 @@ export function Volunteers() {
       {activeTab === 'volunteers' ? (
         <>
           {/* Filters */}
-          <div className="card p-4">
+          <div className="pf-card p-4">
             <div className="flex flex-wrap gap-4">
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -157,7 +157,7 @@ export function Volunteers() {
           </div>
 
           {/* Volunteers Table */}
-          <div className="card overflow-hidden">
+          <div className="pf-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="table min-w-[800px]">
               <thead>
@@ -280,7 +280,7 @@ export function Volunteers() {
             </div>
           ) : (
             shifts.map((shift) => (
-              <div key={shift.id} className="card p-4">
+              <div key={shift.id} className="pf-card p-4">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-medium text-gray-900">{shift.task_name}</h3>
                   <span

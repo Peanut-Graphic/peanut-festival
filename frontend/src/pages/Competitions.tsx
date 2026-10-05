@@ -136,7 +136,7 @@ export function Competitions() {
           ))}
         </div>
       ) : competitions.length === 0 ? (
-        <div className="card p-12 text-center">
+        <div className="pf-card p-12 text-center">
           <Trophy className="w-12 h-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No competitions yet</h3>
           <p className="text-gray-500 mb-4">Create your first competition to start bracket tournaments.</p>
@@ -148,7 +148,7 @@ export function Competitions() {
       ) : (
         <div className="grid gap-4">
           {competitions.map((competition) => (
-            <div key={competition.id} className="card p-6">
+            <div key={competition.id} className="pf-card p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-2">

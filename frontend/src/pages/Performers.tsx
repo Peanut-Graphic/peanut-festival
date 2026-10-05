@@ -137,7 +137,7 @@ export function Performers() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4">
+      <div className="pf-card p-4">
         <div className="flex flex-wrap gap-4">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -170,7 +170,7 @@ export function Performers() {
       </div>
 
       {/* Performers Table */}
-      <div className="card overflow-hidden">
+      <div className="pf-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="table min-w-[700px]">
           <thead>

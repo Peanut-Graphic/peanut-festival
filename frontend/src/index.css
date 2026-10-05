@@ -105,8 +105,12 @@ body {
   @apply text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-500;
 }
 
-/* Card styles */
-.card {
+/*
+  Card styles. Named pf-card, not card: wp-admin's forms.css styles `.card`
+  (max-width 520px, min-width 255px, margin-top 20px, padding), which capped
+  and padded every app card when rendered inside WordPress.
+*/
+.pf-card {
   @apply bg-white rounded-xl shadow-xs border border-gray-200;
 }
 

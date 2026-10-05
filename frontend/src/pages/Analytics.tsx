@@ -38,7 +38,7 @@ export function Analytics() {
 
       {/* Financial Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-green-500">
               <TrendingUp className="w-6 h-6 text-white" />
@@ -52,7 +52,7 @@ export function Analytics() {
           </div>
         </div>
 
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-red-500">
               <TrendingDown className="w-6 h-6 text-white" />
@@ -66,7 +66,7 @@ export function Analytics() {
           </div>
         </div>
 
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-blue-500">
               <DollarSign className="w-6 h-6 text-white" />
@@ -88,7 +88,7 @@ export function Analytics() {
       {/* Category Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Income by Category */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <PieChart className="w-5 h-5 text-green-500" />
             Income by Category
@@ -124,7 +124,7 @@ export function Analytics() {
         </div>
 
         {/* Expenses by Category */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <PieChart className="w-5 h-5 text-red-500" />
             Expenses by Category
@@ -161,7 +161,7 @@ export function Analytics() {
       </div>
 
       {/* Performance Metrics */}
-      <div className="card p-6">
+      <div className="pf-card p-6">
         <h2 className="text-lg font-semibold mb-4">Performance Metrics</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-gray-50 rounded-lg">
@@ -192,7 +192,7 @@ export function Analytics() {
       </div>
 
       {/* Performer Stats */}
-      <div className="card p-6">
+      <div className="pf-card p-6">
         <h2 className="text-lg font-semibold mb-4">Performer Pipeline</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {stats?.performers &&
@@ -208,7 +208,7 @@ export function Analytics() {
       </div>
 
       {/* Volunteer Stats */}
-      <div className="card p-6">
+      <div className="pf-card p-6">
         <h2 className="text-lg font-semibold mb-4">Volunteer Engagement</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-gray-50 rounded-lg">

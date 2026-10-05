@@ -56,7 +56,7 @@ export function VotingAdmin() {
       </div>
 
       {/* Show Selector */}
-      <div className="card p-6">
+      <div className="pf-card p-6">
         <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="votingadmin-select-show">Select Show</label>
         <select id="votingadmin-select-show"
           className="input max-w-md"
@@ -87,7 +87,7 @@ export function VotingAdmin() {
       {selectedShow && (
         <>
           {/* Voting Controls */}
-          <div className="card p-6">
+          <div className="pf-card p-6">
             <h2 className="text-lg font-semibold mb-4">Voting Controls</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-gray-50 rounded-lg">
@@ -131,12 +131,12 @@ export function VotingAdmin() {
             {resultsLoading ? (
               <div className="animate-pulse h-64 bg-gray-200 rounded-xl" />
             ) : Object.keys(groupedResults).length === 0 ? (
-              <div className="card p-6 text-center text-gray-500">
+              <div className="pf-card p-6 text-center text-gray-500">
                 No votes recorded yet for this show.
               </div>
             ) : (
               Object.entries(groupedResults).map(([groupName, groupResults]) => (
-                <div key={groupName} className="card overflow-hidden">
+                <div key={groupName} className="pf-card overflow-hidden">
                   <div className="px-4 py-3 bg-gray-50 border-b">
                     <h3 className="font-medium">{groupName}</h3>
                   </div>

@@ -84,7 +84,7 @@ export function Vendors() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4">
+      <div className="pf-card p-4">
         <div className="flex flex-wrap gap-4">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -131,7 +131,7 @@ export function Vendors() {
           </div>
         ) : (
           filteredVendors.map((vendor) => (
-            <div key={vendor.id} className="card overflow-hidden">
+            <div key={vendor.id} className="pf-card overflow-hidden">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
