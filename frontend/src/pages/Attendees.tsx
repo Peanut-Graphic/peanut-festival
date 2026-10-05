@@ -230,7 +230,7 @@ export function Attendees() {
                   {coupons.map((coupon) => (
                     <tr key={coupon.id}>
                       <td className="px-4 py-3">
-                        <code className="px-2 py-1 bg-gray-100 rounded text-sm font-mono">
+                        <code className="px-2 py-1 bg-gray-100 rounded-sm text-sm font-mono">
                           {coupon.code}
                         </code>
                       </td>
@@ -258,7 +258,7 @@ export function Attendees() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 text-xs font-medium rounded ${
+                          className={`px-2 py-1 text-xs font-medium rounded-sm ${
                             coupon.status === 'active'
                               ? 'bg-green-100 text-green-700'
                               : coupon.status === 'expired'

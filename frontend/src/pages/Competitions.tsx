@@ -297,7 +297,7 @@ export function Competitions() {
               {performers.map((p) => (
                 <label
                   key={p.id}
-                  className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${
+                  className={`flex items-center gap-2 p-2 rounded-sm border cursor-pointer transition-colors ${
                     selectedPerformers.includes(p.id)
                       ? 'bg-blue-50 border-blue-300'
                       : 'bg-white border-gray-200 hover:bg-gray-50'
@@ -307,7 +307,7 @@ export function Competitions() {
                     type="checkbox"
                     checked={selectedPerformers.includes(p.id)}
                     onChange={() => togglePerformerSelection(p.id)}
-                    className="rounded text-blue-600"
+                    className="rounded-sm text-blue-600"
                   />
                   <span className="text-sm">{p.name}</span>
                 </label>
@@ -330,7 +330,7 @@ export function Competitions() {
             </div>
           </div>
         ) : (
-          <div className="animate-pulse h-64 bg-gray-200 rounded" />
+          <div className="animate-pulse h-64 bg-gray-200 rounded-sm" />
         )}
       </Modal>
     </div>
@@ -384,7 +384,7 @@ function BracketView({
                 >
                   {/* Performer 1 */}
                   <div
-                    className={`flex justify-between items-center p-2 rounded ${
+                    className={`flex justify-between items-center p-2 rounded-sm ${
                       match.winner_id === match.performer_1.id
                         ? 'bg-green-100 font-semibold'
                         : match.status === 'completed' && match.winner_id
@@ -403,7 +403,7 @@ function BracketView({
                   <div className="text-center text-xs text-gray-400 my-1">vs</div>
                   {/* Performer 2 */}
                   <div
-                    className={`flex justify-between items-center p-2 rounded ${
+                    className={`flex justify-between items-center p-2 rounded-sm ${
                       match.winner_id === match.performer_2.id
                         ? 'bg-green-100 font-semibold'
                         : match.status === 'completed' && match.winner_id

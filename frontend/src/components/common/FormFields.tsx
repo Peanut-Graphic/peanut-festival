@@ -174,7 +174,7 @@ export const CheckboxField = forwardRef<HTMLInputElement, CheckboxFieldProps>(
           id={id}
           type="checkbox"
           aria-describedby={descId}
-          className="mt-1 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          className="mt-1 h-4 w-4 rounded-sm border-gray-300 text-primary-600 focus:ring-primary-500"
           {...props}
         />
         <label htmlFor={id} className="cursor-pointer">
@@ -253,7 +253,7 @@ export function StarRating({ label, value, onChange, max = 5 }: StarRatingProps)
             onClick={() => onChange(i + 1)}
             aria-label={`Rate ${i + 1} of ${max} stars`}
             aria-pressed={value === i + 1}
-            className={`text-2xl ${i < (value || 0) ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded`}
+            className={`text-2xl ${i < (value || 0) ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400 transition-colors focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded-sm`}
           >
             <span aria-hidden="true">★</span>
           </button>
@@ -262,7 +262,7 @@ export function StarRating({ label, value, onChange, max = 5 }: StarRatingProps)
           <button
             type="button"
             onClick={() => onChange(0)}
-            className="ml-2 text-xs text-gray-500 hover:text-gray-700 focus:outline-none focus:underline"
+            className="ml-2 text-xs text-gray-500 hover:text-gray-700 focus:outline-hidden focus:underline"
             aria-label="Clear rating"
           >
             Clear

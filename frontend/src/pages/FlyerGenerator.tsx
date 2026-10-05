@@ -207,11 +207,11 @@ export function FlyerGenerator() {
                             <img
                               src={log.thumb_url}
                               alt="Flyer preview"
-                              className="w-20 h-20 object-cover rounded border"
+                              className="w-20 h-20 object-cover rounded-sm border"
                             />
                           </a>
                         ) : (
-                          <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center">
+                          <div className="w-20 h-20 bg-gray-100 rounded-sm flex items-center justify-center">
                             <Image className="w-6 h-6 text-gray-400" />
                           </div>
                         )}
@@ -306,11 +306,11 @@ function TemplateCard({
         )}
         <div className="absolute top-2 right-2 flex gap-1">
           {template.is_active ? (
-            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
+            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-sm">
               Active
             </span>
           ) : (
-            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">
+            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-sm">
               Inactive
             </span>
           )}
@@ -412,7 +412,7 @@ function TemplateEditorModal({
                   id="is_active"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 text-primary-600 rounded"
+                  className="w-4 h-4 text-primary-600 rounded-sm"
                 />
                 <label htmlFor="is_active" className="text-sm text-gray-700">
                   Active (visible in shortcode)

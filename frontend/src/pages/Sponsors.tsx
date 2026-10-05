@@ -15,7 +15,7 @@ const statusColors: Record<string, string> = {
 };
 
 const tierColors: Record<string, string> = {
-  presenting: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white',
+  presenting: 'bg-linear-to-r/srgb from-yellow-400 to-amber-500 text-white',
   gold: 'bg-yellow-500 text-white',
   silver: 'bg-gray-400 text-white',
   bronze: 'bg-amber-700 text-white',
@@ -78,7 +78,7 @@ export function Sponsors() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-8 bg-gray-200 rounded w-48" />
+        <div className="h-8 bg-gray-200 rounded-sm w-48" />
         <div className="h-64 bg-gray-200 rounded-xl" />
       </div>
     );
@@ -163,7 +163,7 @@ export function Sponsors() {
             sponsorsByTier[tier]?.length > 0 && (
               <div key={tier} className="space-y-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded text-sm ${tierColors[tier]}`}>
+                  <span className={`px-2 py-1 rounded-sm text-sm ${tierColors[tier]}`}>
                     {tierLabels[tier]}
                   </span>
                   <span className="text-gray-400 text-sm">
@@ -184,7 +184,7 @@ export function Sponsors() {
                                 className="w-12 h-12 object-contain"
                               />
                             ) : (
-                              <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
+                              <div className="w-12 h-12 bg-gray-100 rounded-sm flex items-center justify-center">
                                 <span className="text-xl font-bold text-gray-400">
                                   {sponsor.company_name.charAt(0)}
                                 </span>

@@ -71,7 +71,7 @@ export function Festivals() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-8 bg-gray-200 rounded w-48" />
+        <div className="h-8 bg-gray-200 rounded-sm w-48" />
         <div className="h-64 bg-gray-200 rounded-xl" />
       </div>
     );
@@ -148,7 +148,7 @@ export function Festivals() {
                           setEditingFestival(festival);
                           setIsModalOpen(true);
                         }}
-                        className="p-1.5 rounded hover:bg-gray-100"
+                        className="p-1.5 rounded-sm hover:bg-gray-100"
                         title="Edit"
                         aria-label={`Edit ${festival.name}`}
                       >
@@ -156,7 +156,7 @@ export function Festivals() {
                       </button>
                       <button
                         onClick={() => duplicateMutation.mutate(festival)}
-                        className="p-1.5 rounded hover:bg-gray-100"
+                        className="p-1.5 rounded-sm hover:bg-gray-100"
                         title="Duplicate"
                         aria-label={`Duplicate ${festival.name}`}
                       >
@@ -164,7 +164,7 @@ export function Festivals() {
                       </button>
                       <button
                         onClick={() => handleDelete(festival)}
-                        className="p-1.5 rounded hover:bg-gray-100"
+                        className="p-1.5 rounded-sm hover:bg-gray-100"
                         title="Delete"
                         aria-label={`Delete ${festival.name}`}
                       >

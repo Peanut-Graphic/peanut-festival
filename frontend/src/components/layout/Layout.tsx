@@ -47,16 +47,16 @@ export function Layout({ children }: LayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-gray-50 md:flex-row">
+    <div className="flex min-h-dvh flex-col bg-gray-50 md:flex-row">
       <a
         href="#main-content"
-        className="sr-only fixed left-3 top-3 z-[60] rounded-md bg-white px-4 py-3 text-sm font-semibold text-primary-700 shadow-lg focus:not-sr-only"
+        className="sr-only fixed left-3 top-3 z-60 rounded-md bg-white px-4 py-3 text-sm font-semibold text-primary-700 shadow-lg focus:not-sr-only"
       >
         Skip to main content
       </a>
       {/* Sidebar */}
       <aside
-        className={`flex-shrink-0 flex flex-col border-b border-gray-200 bg-white transition-all duration-300 md:border-b-0 md:border-r ${
+        className={`shrink-0 flex flex-col border-b border-gray-200 bg-white transition-all duration-300 md:border-b-0 md:border-r ${
           collapsed ? 'md:w-16' : 'md:w-56'
         }`}
       >
@@ -91,7 +91,7 @@ export function Layout({ children }: LayoutProps) {
                 }
                 title={collapsed ? item.name : undefined}
               >
-                <item.icon className="w-4 h-4 flex-shrink-0" />
+                <item.icon className="w-4 h-4 shrink-0" />
                 {(!collapsed || typeof window === 'undefined') && <span className="md:inline">{item.name}</span>}
               </NavLink>
             ))}
