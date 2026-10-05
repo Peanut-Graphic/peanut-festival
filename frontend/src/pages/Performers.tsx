@@ -13,7 +13,7 @@ function PerformerAvatar({ performer }: { performer: Performer }) {
 
   if (!performer.photo_url || imageError) {
     return (
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0">
+      <div className="w-10 h-10 rounded-full bg-linear-to-br/srgb from-primary-400 to-primary-600 flex items-center justify-center shrink-0">
         <span className="text-white text-sm font-medium">
           {performer.name.charAt(0).toUpperCase()}
         </span>
@@ -25,7 +25,7 @@ function PerformerAvatar({ performer }: { performer: Performer }) {
     <img
       src={performer.photo_url}
       alt={performer.name}
-      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+      className="w-10 h-10 rounded-full object-cover shrink-0"
       onError={() => setImageError(true)}
       referrerPolicy="no-referrer"
     />
@@ -114,7 +114,7 @@ export function Performers() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-8 bg-gray-200 rounded w-48" />
+        <div className="h-8 bg-gray-200 rounded-sm w-48" />
         <div className="h-64 bg-gray-200 rounded-xl" />
       </div>
     );
@@ -218,21 +218,21 @@ export function Performers() {
                         <>
                           <button
                             onClick={() => handleReview(performer.id, 'accepted')}
-                            className="p-1.5 rounded hover:bg-green-50"
+                            className="p-1.5 rounded-sm hover:bg-green-50"
                             title="Accept"
                           >
                             <Check className="w-4 h-4 text-green-600" />
                           </button>
                           <button
                             onClick={() => handleReview(performer.id, 'rejected')}
-                            className="p-1.5 rounded hover:bg-red-50"
+                            className="p-1.5 rounded-sm hover:bg-red-50"
                             title="Reject"
                           >
                             <X className="w-4 h-4 text-red-600" />
                           </button>
                           <button
                             onClick={() => handleReview(performer.id, 'under_review')}
-                            className="p-1.5 rounded hover:bg-blue-50"
+                            className="p-1.5 rounded-sm hover:bg-blue-50"
                             title="Mark as Under Review"
                           >
                             <Clock className="w-4 h-4 text-blue-600" />
@@ -242,7 +242,7 @@ export function Performers() {
                       {performer.application_status === 'accepted' && !performer.notification_sent && (
                         <button
                           onClick={() => notifyMutation.mutate(performer.id)}
-                          className="p-1.5 rounded hover:bg-blue-50"
+                          className="p-1.5 rounded-sm hover:bg-blue-50"
                           title="Send Notification"
                         >
                           <Mail className="w-4 h-4 text-blue-600" />
@@ -253,14 +253,14 @@ export function Performers() {
                           setEditingPerformer(performer);
                           setIsModalOpen(true);
                         }}
-                        className="p-1.5 rounded hover:bg-gray-100"
+                        className="p-1.5 rounded-sm hover:bg-gray-100"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4 text-gray-500" />
                       </button>
                       <button
                         onClick={() => handleDelete(performer)}
-                        className="p-1.5 rounded hover:bg-gray-100"
+                        className="p-1.5 rounded-sm hover:bg-gray-100"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />

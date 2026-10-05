@@ -65,7 +65,7 @@ export function Venues() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-8 bg-gray-200 rounded w-48" />
+        <div className="h-8 bg-gray-200 rounded-sm w-48" />
         <div className="h-64 bg-gray-200 rounded-xl" />
       </div>
     );
@@ -139,7 +139,7 @@ export function Venues() {
                 <div className="space-y-2 text-sm text-gray-500">
                   {venue.address && (
                     <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
                       <span>
                         {venue.address}
                         {venue.city && `, ${venue.city}`}

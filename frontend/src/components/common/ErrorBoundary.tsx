@@ -83,7 +83,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 <summary className="text-xs text-red-500 cursor-pointer hover:text-red-700">
                   Error details
                 </summary>
-                <pre className="mt-2 p-2 bg-red-100 rounded text-xs overflow-auto max-h-32">
+                <pre className="mt-2 p-2 bg-red-100 rounded-sm text-xs overflow-auto max-h-32">
                   {this.state.error.message}
                   {this.state.errorInfo?.componentStack}
                 </pre>
@@ -91,7 +91,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             )}
             <button
               onClick={this.handleRetry}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               <svg
                 className="w-4 h-4 mr-2"

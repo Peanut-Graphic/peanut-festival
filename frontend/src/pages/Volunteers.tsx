@@ -226,7 +226,7 @@ export function Volunteers() {
                                 onClick={() =>
                                   updateStatusMutation.mutate({ id: volunteer.id, status: 'approved' })
                                 }
-                                className="p-1.5 rounded hover:bg-green-50"
+                                className="p-1.5 rounded-sm hover:bg-green-50"
                                 title="Approve"
                               >
                                 <Check className="w-4 h-4 text-green-600" />
@@ -235,7 +235,7 @@ export function Volunteers() {
                                 onClick={() =>
                                   updateStatusMutation.mutate({ id: volunteer.id, status: 'declined' })
                                 }
-                                className="p-1.5 rounded hover:bg-red-50"
+                                className="p-1.5 rounded-sm hover:bg-red-50"
                                 title="Decline"
                               >
                                 <X className="w-4 h-4 text-red-600" />
@@ -247,14 +247,14 @@ export function Volunteers() {
                               setEditingVolunteer(volunteer);
                               setIsVolunteerModalOpen(true);
                             }}
-                            className="p-1.5 rounded hover:bg-gray-100"
+                            className="p-1.5 rounded-sm hover:bg-gray-100"
                             title="Edit"
                           >
                             <Edit2 className="w-4 h-4 text-gray-500" />
                           </button>
                           <button
                             onClick={() => handleDelete(volunteer)}
-                            className="p-1.5 rounded hover:bg-gray-100"
+                            className="p-1.5 rounded-sm hover:bg-gray-100"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />

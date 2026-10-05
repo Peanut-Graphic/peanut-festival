@@ -237,7 +237,7 @@ export function Settings() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48" />
+        <div className="h-8 bg-gray-200 rounded-sm w-48" />
         <div className="h-64 bg-gray-200 rounded-xl" />
       </div>
     );
@@ -500,7 +500,7 @@ export function Settings() {
               <input
                 type="checkbox"
                 id="firebase_enabled"
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                className="rounded-sm border-gray-300 text-indigo-600 focus:ring-indigo-500"
                 checked={firebaseData.enabled || false}
                 onChange={(e) => handleFirebaseChange('enabled', e.target.checked)}
               />

@@ -279,7 +279,7 @@ export function VolunteerForm({ isOpen, onClose, volunteer }: VolunteerFormProps
                   className="sr-only"
                 />
                 <span
-                  className={`w-4 h-4 rounded flex items-center justify-center text-xs ${
+                  className={`w-4 h-4 rounded-sm flex items-center justify-center text-xs ${
                     selectedSkills?.includes(skill.value)
                       ? 'bg-primary-500 text-white'
                       : 'bg-gray-200'
