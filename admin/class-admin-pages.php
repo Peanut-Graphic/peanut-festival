@@ -144,32 +144,16 @@ class Peanut_Festival_Admin_Pages {
                 box-shadow: none;
                 text-shadow: none;
             }
-            /* Reset WordPress form field styles */
-            #peanut-festival-app input[type="text"],
-            #peanut-festival-app input[type="email"],
-            #peanut-festival-app input[type="url"],
-            #peanut-festival-app input[type="password"],
-            #peanut-festival-app input[type="search"],
-            #peanut-festival-app input[type="number"],
-            #peanut-festival-app textarea,
-            #peanut-festival-app select {
-                background-color: white;
-                border: 1px solid #e2e8f0;
-                box-shadow: none;
-                border-radius: 0.375rem;
-            }
-            /* Reset WordPress link colors */
-            #peanut-festival-app a {
-                color: inherit;
-                text-decoration: none;
-            }
-            #peanut-festival-app a:hover {
-                color: inherit;
-            }
-            #peanut-festival-app a:focus {
-                box-shadow: none;
-                outline: none;
-            }
+            /*
+             * No form-field or link resets here. They used ID selectors
+             * (#peanut-festival-app input[type="text"], #peanut-festival-app a),
+             * which also beat the app's own classes: .input lost its border
+             * color and radius, and link color classes (text-primary-700 on
+             * the active nav item) rendered as inherited text color. WordPress's
+             * field and link rules are now outranked inside the app bundle
+             * itself (see frontend/postcss-wp-admin-specificity.js and
+             * frontend/src/styles/wp-admin-compat.css).
+             */
         </style>
         <?php
     }

@@ -1,0 +1,32 @@
+/*
+  wp-admin link colors (loaded after preflight, before components and
+  utilities). WordPress common.css sets `a:hover, a:active { color: #135e96 }`
+  and `a:focus { color: #043959; box-shadow: 0 0 0 2px #2271b1 }`. Those
+  (0,1,1) rules beat preflight's `a { color: inherit }`, so plain links
+  turned WordPress blue on hover/focus. These rules tie them and load later;
+  a link's own text-* / hover:* classes (html-prefixed at build time) still
+  win because utilities come after this file. Standalone they are no-ops:
+  preflight already makes links inherit, with no focus box-shadow.
+
+  This replaces the old `#peanut-festival-app a { color: inherit }` inline
+  reset, whose ID specificity also overrode every link color class.
+*/
+a:hover,
+a:active,
+a:focus {
+    color: inherit;
+}
+
+a:focus {
+    box-shadow: none;
+}
+
+/*
+  wp-admin forms.css sets `::-webkit-datetime-edit { line-height: 1.857 }`
+  globally, which made date inputs 6px taller than text inputs inside
+  WordPress. Inherit the input's own line-height instead (what Chrome's
+  default stylesheet does).
+*/
+::-webkit-datetime-edit {
+    line-height: inherit;
+}
