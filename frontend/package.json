@@ -41,11 +41,11 @@
         "zustand": "^5.0.1"
     },
     "browserslist": [
-        "last 2 Chrome versions",
-        "last 2 Firefox versions",
-        "last 2 Safari versions",
-        "last 2 Edge versions",
-        "not dead"
+        "chrome >= 111",
+        "edge >= 111",
+        "firefox >= 128",
+        "safari >= 16.4",
+        "ios_saf >= 16.4"
     ],
     "devDependencies": {
         "@tailwindcss/postcss": "^4.3.3",
