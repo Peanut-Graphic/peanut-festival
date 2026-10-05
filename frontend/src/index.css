@@ -1,4 +1,17 @@
-@import 'tailwindcss';
+/*
+  Tailwind is imported piecewise so that preflight and utilities are NOT in
+  native cascade layers. This app renders inside wp-admin, whose stylesheets
+  (and the inline reset in admin/class-admin-pages.php) are unlayered, and
+  unlayered CSS always beats layered CSS regardless of specificity. With the
+  default `@import 'tailwindcss'` (layered), WordPress rules such as
+  `h1`, `p`, `select` and `input[type=text]` override Tailwind utilities.
+  Unlayered, the cascade matches Tailwind v3: specificity and source order.
+*/
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css';
+@import './styles/v3-compat-base.css';
+@import 'tailwindcss/utilities.css';
+@import './styles/v3-compat-spacing.css';
 @import './styles/v3-palette.css';
 
 @theme {
@@ -36,36 +49,6 @@
   */
   --default-ring-width: 3px;
   --default-ring-color: rgb(59 130 246 / 0.5);
-}
-
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
-
-  /* v3 compat: placeholders were gray-400 (v4 uses 50% of currentcolor). */
-  input::placeholder,
-  textarea::placeholder {
-    color: var(--color-gray-400);
-  }
-
-  /* v3 compat: buttons used cursor: pointer (v4 uses the browser default). */
-  button:not(:disabled),
-  [role='button']:not(:disabled) {
-    cursor: pointer;
-  }
 }
 
 /* Base styles */
