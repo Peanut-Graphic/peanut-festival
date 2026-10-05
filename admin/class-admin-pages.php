@@ -101,10 +101,14 @@ class Peanut_Festival_Admin_Pages {
             }
 
             /* ===== CSS ISOLATION FOR TAILWIND ===== */
-            /* Override WordPress's .hidden class that may have !important */
-            #peanut-festival-app .hidden {
-                display: none;
-            }
+            /*
+             * No `.hidden` reset here. The app's own `hidden` utility
+             * (html .hidden, 0,1,1) already beats WordPress's `.hidden`
+             * (0,1,0), and responsive variants such as md:inline-flex come
+             * after it. An ID-scoped `#peanut-festival-app .hidden` (1,1,0)
+             * outranked every responsive display class, which hid the
+             * sidebar collapse button (hidden md:inline-flex) in wp-admin.
+             */
             /* Tailwind responsive utilities - override any WP conflicts */
             @media (min-width: 768px) {
                 #peanut-festival-app .md\:block {
