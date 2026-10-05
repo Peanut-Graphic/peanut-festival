@@ -61,7 +61,7 @@ export function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat) => (
-          <div key={stat.label} className="card p-6">
+          <div key={stat.label} className="pf-card p-6">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-lg ${stat.color}`}>
                 <stat.icon className="w-6 h-6 text-white" />
@@ -79,7 +79,7 @@ export function Dashboard() {
       {/* Additional sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upcoming Shows */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">Upcoming Shows</h2>
           <div className="space-y-3">
             {stats?.shows.scheduled === 0 ? (
@@ -93,7 +93,7 @@ export function Dashboard() {
         </div>
 
         {/* Ticket Sales */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">Ticket Sales</h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
@@ -114,7 +114,7 @@ export function Dashboard() {
         </div>
 
         {/* Performer Applications */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">Performer Applications</h2>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
@@ -133,7 +133,7 @@ export function Dashboard() {
         </div>
 
         {/* Volunteer Shifts */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">Volunteer Shifts</h2>
           <div className="space-y-2">
             <div className="flex justify-between items-center">

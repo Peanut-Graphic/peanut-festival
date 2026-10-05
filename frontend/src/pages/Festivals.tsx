@@ -98,7 +98,7 @@ export function Festivals() {
         </button>
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="pf-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="table w-full min-w-[600px]">
           <thead>

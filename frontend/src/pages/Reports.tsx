@@ -203,7 +203,7 @@ export function Reports() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-4">
+        <div className="pf-card p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-100">
               <Ticket className="w-5 h-5 text-blue-600" />
@@ -215,7 +215,7 @@ export function Reports() {
           </div>
         </div>
 
-        <div className="card p-4">
+        <div className="pf-card p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-100">
               <DollarSign className="w-5 h-5 text-green-600" />
@@ -227,7 +227,7 @@ export function Reports() {
           </div>
         </div>
 
-        <div className="card p-4">
+        <div className="pf-card p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-100">
               <Users className="w-5 h-5 text-purple-600" />
@@ -239,7 +239,7 @@ export function Reports() {
           </div>
         </div>
 
-        <div className="card p-4">
+        <div className="pf-card p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-amber-100">
               <TrendingUp className="w-5 h-5 text-amber-600" />
@@ -313,7 +313,7 @@ export function Reports() {
           </div>
 
           {/* Sales Over Time Chart */}
-          <div className="card p-6">
+          <div className="pf-card p-6">
             <h2 className="text-lg font-semibold mb-4">Sales Over Time</h2>
             <BarChart
               data={ticketSales?.over_time || []}
@@ -324,7 +324,7 @@ export function Reports() {
           </div>
 
           {/* Sales by Show Table */}
-          <div className="card p-6">
+          <div className="pf-card p-6">
             <h2 className="text-lg font-semibold mb-4">Sales by Show</h2>
             <div className="overflow-x-auto">
               <table className="table">
@@ -376,19 +376,19 @@ export function Reports() {
         <div className="space-y-6">
           {/* Revenue Summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="card p-4 border-l-4 border-green-500">
+            <div className="pf-card p-4 border-l-4 border-green-500">
               <p className="text-sm text-gray-500">Total Income</p>
               <p className="text-2xl font-bold text-green-600">
                 ${(revenue?.summary.total_income || 0).toLocaleString()}
               </p>
             </div>
-            <div className="card p-4 border-l-4 border-red-500">
+            <div className="pf-card p-4 border-l-4 border-red-500">
               <p className="text-sm text-gray-500">Total Expenses</p>
               <p className="text-2xl font-bold text-red-600">
                 ${(revenue?.summary.total_expenses || 0).toLocaleString()}
               </p>
             </div>
-            <div className="card p-4 border-l-4 border-blue-500">
+            <div className="pf-card p-4 border-l-4 border-blue-500">
               <p className="text-sm text-gray-500">Net Balance</p>
               <p className={`text-2xl font-bold ${
                 (revenue?.summary.net || 0) >= 0 ? 'text-green-600' : 'text-red-600'
@@ -399,13 +399,13 @@ export function Reports() {
           </div>
 
           {/* Revenue Over Time Chart */}
-          <div className="card p-6">
+          <div className="pf-card p-6">
             <h2 className="text-lg font-semibold mb-4">Income vs Expenses Over Time</h2>
             <LineChart data={revenue?.over_time || []} />
           </div>
 
           {/* Revenue by Category */}
-          <div className="card p-6">
+          <div className="pf-card p-6">
             <h2 className="text-lg font-semibold mb-4">By Category</h2>
             <div className="overflow-x-auto">
               <table className="table">
@@ -452,7 +452,7 @@ export function Reports() {
 
       {/* Activity Tab */}
       {activeTab === 'activity' && (
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
           <div className="space-y-3">
             {activity?.map(log => (

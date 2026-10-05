@@ -78,7 +78,7 @@ export function Shows() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4">
+      <div className="pf-card p-4">
         <div className="flex flex-wrap gap-4">
           <select
             className="input w-40"
@@ -104,7 +104,7 @@ export function Shows() {
           </div>
         ) : (
           shows.map((show) => (
-            <div key={show.id} className="card overflow-hidden">
+            <div key={show.id} className="pf-card overflow-hidden">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="font-semibold text-gray-900">{show.title}</h3>

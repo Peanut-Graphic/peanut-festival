@@ -131,7 +131,7 @@ describe('Dashboard', () => {
     // Wait for loading to finish - checking for the stat card container
     await waitFor(() => {
       // Check that stat cards are rendered by looking for card elements
-      const cards = container.querySelectorAll('.card');
+      const cards = container.querySelectorAll('.pf-card');
       expect(cards.length).toBeGreaterThanOrEqual(4);
     });
   });

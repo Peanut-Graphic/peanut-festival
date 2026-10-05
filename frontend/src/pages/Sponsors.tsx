@@ -102,19 +102,19 @@ export function Sponsors() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card p-4">
+        <div className="pf-card p-4">
           <div className="text-sm text-gray-500">Total Sponsorship</div>
           <div className="text-2xl font-bold text-green-600">
             ${sponsors.reduce((sum, s) => sum + (s.sponsorship_amount || 0), 0).toLocaleString()}
           </div>
         </div>
-        <div className="card p-4">
+        <div className="pf-card p-4">
           <div className="text-sm text-gray-500">In-Kind Value</div>
           <div className="text-2xl font-bold text-blue-600">
             ${sponsors.reduce((sum, s) => sum + (s.in_kind_value || 0), 0).toLocaleString()}
           </div>
         </div>
-        <div className="card p-4">
+        <div className="pf-card p-4">
           <div className="text-sm text-gray-500">Confirmed Sponsors</div>
           <div className="text-2xl font-bold text-gray-900">
             {sponsors.filter((s) => s.status === 'confirmed').length}
@@ -123,7 +123,7 @@ export function Sponsors() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4">
+      <div className="pf-card p-4">
         <div className="flex flex-wrap gap-4">
           <select
             className="input w-40"
@@ -154,7 +154,7 @@ export function Sponsors() {
 
       {/* Sponsors by Tier */}
       {sponsors.length === 0 ? (
-        <div className="card p-6 text-center text-gray-500">
+        <div className="pf-card p-6 text-center text-gray-500">
           No sponsors found. Add your first sponsor to get started.
         </div>
       ) : (
@@ -173,7 +173,7 @@ export function Sponsors() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {sponsorsByTier[tier].map((sponsor) => (
-                    <div key={sponsor.id} className="card overflow-hidden">
+                    <div key={sponsor.id} className="pf-card overflow-hidden">
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">

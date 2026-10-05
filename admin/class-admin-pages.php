@@ -131,8 +131,14 @@ class Peanut_Festival_Admin_Pages {
             #peanut-festival-app aside.fixed {
                 z-index: 100;
             }
-            /* Reset WordPress button styles inside the app */
-            #peanut-festival-app button {
+            /*
+             * Reset WordPress button styles inside the app. :where() keeps the
+             * selector at element specificity (0,0,1) so component and utility
+             * classes (.btn-primary, bg-*, border) still win. An ID selector
+             * here made primary buttons transparent (white text on nothing),
+             * hid the modal backdrop and stripped .btn-secondary's border.
+             */
+            :where(#peanut-festival-app) button {
                 background-color: transparent;
                 border: none;
                 box-shadow: none;

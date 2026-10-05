@@ -251,7 +251,7 @@ export function Settings() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* General Settings */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">General</h2>
           <div className="space-y-4">
             <div>
@@ -296,7 +296,7 @@ export function Settings() {
         </div>
 
         {/* Eventbrite Integration */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">Eventbrite Integration</h2>
           <div className="space-y-4">
             <div>
@@ -357,7 +357,7 @@ export function Settings() {
         </div>
 
         {/* Mailchimp Integration */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">Mailchimp Integration</h2>
           <div className="space-y-4">
             <div>
@@ -486,7 +486,7 @@ export function Settings() {
         </div>
 
         {/* Firebase Integration */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <div className="flex items-center gap-2 mb-4">
             <Flame className="w-5 h-5 text-orange-500" />
             <h2 className="text-lg font-semibold">Firebase Real-Time</h2>
@@ -693,7 +693,7 @@ export function Settings() {
         </div>
 
         {/* Voting Settings */}
-        <div className="card p-6">
+        <div className="pf-card p-6">
           <h2 className="text-lg font-semibold mb-4">Voting Weights</h2>
           <p className="text-sm text-gray-500 mb-4">
             Configure the point values for each vote position in the voting system

@@ -88,7 +88,7 @@ export function Venues() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4">
+      <div className="pf-card p-4">
         <div className="flex flex-wrap gap-4">
           <select
             className="input w-40"
@@ -124,7 +124,7 @@ export function Venues() {
           </div>
         ) : (
           venues.map((venue) => (
-            <div key={venue.id} className="card overflow-hidden">
+            <div key={venue.id} className="pf-card overflow-hidden">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <div>
