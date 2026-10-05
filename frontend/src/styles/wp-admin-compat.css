@@ -79,3 +79,39 @@ a:focus {
 :where(.peanut-festival-fullscreen-app) :is(h1, h2, h3) {
     color: inherit;
 }
+
+/*
+  wp-admin forms.css, under 782px: `.wp-core-ui select { min-height: 40px }`
+  and `input[type=text], input[type=email], ... { min-height: 40px }` (both
+  0,1,1). App fields are 38px standalone (.input: py-2 + text-sm + border),
+  so on phones every select and text-like input grew 2px inside WordPress
+  and shifted the content below it (the Shows status filter). Desktop
+  `.wp-core-ui select` also sets `min-height: 30px`.
+
+  Reset to the browser default inside the wp-admin container only (absent
+  standalone, so a no-op there). Each selector is exactly (0,1,1): it ties
+  WordPress and loads later, and still loses to app utilities (html .min-h-*,
+  also 0,1,1, printed after this file). Neither starts with a class, so the
+  html-prefix PostCSS plugin leaves them alone. (Not `:is(.container) select`:
+  the minifier unwraps that to a class-led selector, which then gets the
+  html prefix and becomes 0,1,2.)
+*/
+select:is(.peanut-festival-fullscreen-app *),
+:where(.peanut-festival-fullscreen-app)
+    input:is(
+        [type='date'],
+        [type='datetime-local'],
+        [type='datetime'],
+        [type='email'],
+        [type='month'],
+        [type='number'],
+        [type='password'],
+        [type='search'],
+        [type='tel'],
+        [type='text'],
+        [type='time'],
+        [type='url'],
+        [type='week']
+    ) {
+    min-height: auto;
+}

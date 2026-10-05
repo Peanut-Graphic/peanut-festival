@@ -137,6 +137,40 @@ describe('wp-admin cascade', () => {
         });
     });
 
+    it('does not hide responsive display classes with an ID-scoped .hidden', () => {
+        const css = inlineAdminStyles();
+        // `#peanut-festival-app .hidden { display: none }` (1,1,0) beat
+        // md:inline-flex (html-prefixed, 0,1,1): the sidebar collapse button
+        // (`hidden ... md:inline-flex`) never showed in wp-admin. The app's
+        // own `hidden` utility already outranks WordPress's `.hidden` (0,1,0).
+        expect(css).not.toMatch(/#peanut-festival-app(?!\))[^{}]*\.hidden\b/);
+
+        const layout = readFileSync(join(srcDir, 'components/layout/Layout.tsx'), 'utf8');
+        expect(layout).toMatch(/className="hidden [^"]*md:inline-flex"/);
+    });
+
+    it('neutralizes the wp-admin min-height on app selects and inputs', () => {
+        // wp-admin forms.css (max-width: 782px): `.wp-core-ui select` and
+        // `input[type=text]`, ... { min-height: 40px }. The 38px Shows status
+        // filter grew to 40px on phones inside WordPress.
+        const root = postcss.parse(readFileSync(join(srcDir, 'styles/wp-admin-compat.css'), 'utf8'));
+        const selectors: string[] = [];
+        root.walkRules((rule) => {
+            if (rule.some((n) => n.type === 'decl' && n.prop === 'min-height' && n.value === 'auto')) {
+                selectors.push(...rule.selectors);
+            }
+        });
+        expect(selectors).toContain('select:is(.peanut-festival-fullscreen-app *)');
+        const inputSel = selectors.find((s) => /^:where\(\.peanut-festival-fullscreen-app\)\s+input:is\(/.test(s));
+        expect(inputSel).toBeDefined();
+        for (const type of ['text', 'email', 'number', 'search', 'date', 'time', 'url', 'tel', 'password']) {
+            expect(inputSel).toContain(`[type='${type}']`);
+        }
+        // Not class-led, so the html-prefix plugin leaves them at (0,1,1)
+        // and app min-h-* utilities still win.
+        for (const sel of selectors) expect(prefixSelector(sel)).toBe(sel);
+    });
+
     it('wires the html-prefix plugin into the PostCSS config', () => {
         const config = readFileSync(resolve(srcDir, '../postcss.config.js'), 'utf8');
         expect(config).toMatch(/plugins:\s*\[\s*tailwindcss\(\),\s*wpAdminSpecificity\(\)\s*\]/);
