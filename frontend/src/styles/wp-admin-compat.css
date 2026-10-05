@@ -30,3 +30,52 @@ a:focus {
 ::-webkit-datetime-edit {
     line-height: inherit;
 }
+
+/*
+  wp-admin text baseline. WordPress common.css sets `body { font-size: 13px;
+  line-height: 1.4em; font-family: ... }` and `#wpwrap {
+  -webkit-font-smoothing: subpixel-antialiased }`, so inside WordPress any app
+  text without a text-* class rendered at 13px (dashboard and Shows card
+  rows) with subpixel smoothing. Restore the standalone baseline (the values
+  preflight's html rule and the app's body rule give) on the fullscreen
+  container that admin/class-admin-pages.php renders around the app root;
+  descendants inherit it. That container exists only inside wp-admin, so
+  standalone this rule matches nothing. Utilities still win on elements that
+  carry their own text-* / leading-* / font-* / subpixel-antialiased class.
+*/
+.peanut-festival-fullscreen-app {
+    font-family: var(
+        --default-font-family,
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        'Helvetica Neue',
+        Arial,
+        sans-serif
+    );
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+  WordPress common.css also sets `p { font-size: 13px; line-height: 1.5 }`,
+  so a <p> without a text-* class stayed at 13px even with the baseline
+  above. :where() keeps this at element specificity (0,0,1): it ties
+  WordPress, loads later, and loses to every app class.
+*/
+:where(.peanut-festival-fullscreen-app) p {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+/*
+  WordPress common.css colors `h1, h2, h3` #1d2327; standalone they inherit
+  the app's text color (gray-900). Same :where() trick: element specificity,
+  so a heading's own text-* class still wins.
+*/
+:where(.peanut-festival-fullscreen-app) :is(h1, h2, h3) {
+    color: inherit;
+}
