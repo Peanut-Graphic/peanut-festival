@@ -252,7 +252,13 @@ class Peanut_Festival_REST_API {
         $config = Peanut_Festival_Voting::get_show_config($show_slug);
         $group_name = $config['active_group'];
 
-        $ip_hash = Peanut_Festival_Voting::hash_ip($_SERVER['REMOTE_ADDR'] ?? '');
+        // Distinct performers from the active group, at most three, in rank order.
+        $ballot = Peanut_Festival_Voting::normalize_ballot($performer_ids, $config);
+        if (is_wp_error($ballot)) {
+            return Peanut_Festival_REST_Response::error('invalid_ballot', $ballot->get_error_message());
+        }
+
+        $ip_hash = Peanut_Festival_Voting::hash_ip(Peanut_Festival_Rate_Limiter::get_client_ip());
         $ua_hash = Peanut_Festival_Voting::hash_ua($_SERVER['HTTP_USER_AGENT'] ?? '');
 
         // Generate device fingerprint if provided (enhanced fraud detection)
@@ -263,7 +269,8 @@ class Peanut_Festival_REST_API {
         }
 
         // Check if already voted (skip for admins)
-        if (!current_user_can('manage_options')) {
+        $is_admin = current_user_can('manage_options');
+        if (!$is_admin) {
             if (Peanut_Festival_Voting::has_voted($show_slug, $group_name, $token, $ip_hash)) {
                 return Peanut_Festival_REST_Response::error('already_voted');
             }
@@ -288,18 +295,26 @@ class Peanut_Festival_REST_API {
             }
         }
 
-        // Record votes with ranks
-        foreach ($performer_ids as $rank => $performer_id) {
-            Peanut_Festival_Voting::record_vote([
+        // Record the ballot. The ballot key's UNIQUE index enforces one ballot
+        // per voter per group even if two submissions race past has_voted().
+        $recorded = Peanut_Festival_Voting::record_ballot(
+            [
                 'show_slug' => $show_slug,
                 'group_name' => $group_name,
-                'performer_id' => (int) $performer_id,
-                'vote_rank' => $rank + 1,
                 'ip_hash' => $ip_hash,
                 'ua_hash' => $ua_hash,
                 'token' => $token,
                 'fingerprint_hash' => $fingerprint_hash,
-            ]);
+            ],
+            $ballot,
+            $is_admin ? null : Peanut_Festival_Voting::ballot_key($show_slug, $group_name, $ip_hash)
+        );
+
+        if (is_wp_error($recorded)) {
+            if ($recorded->get_error_code() === 'already_voted') {
+                return Peanut_Festival_REST_Response::error('already_voted');
+            }
+            return Peanut_Festival_REST_Response::error('server_error', $recorded->get_error_message());
         }
 
         return Peanut_Festival_REST_Response::success(null, 'Vote recorded successfully');

@@ -16,7 +16,7 @@ class Peanut_Festival_Migrations {
     /**
      * Current database schema version
      */
-    private const CURRENT_VERSION = '1.7.1';
+    private const CURRENT_VERSION = '1.7.2';
 
     /**
      * Option name for storing DB version
@@ -176,6 +176,10 @@ class Peanut_Festival_Migrations {
             '1.7.1' => [
                 'name' => 'Add head-to-head match vote ledger (one vote per voter per match)',
                 'callback' => [self::class, 'migration_1_7_1'],
+            ],
+            '1.7.2' => [
+                'name' => 'Enforce one show-vote ballot per voter per group (votes.ballot_key)',
+                'callback' => [self::class, 'migration_1_7_2'],
             ],
         ];
     }
@@ -684,6 +688,45 @@ class Peanut_Festival_Migrations {
 
         if (empty($columns) || !in_array('voter_hash', $columns, true)) {
             throw new RuntimeException('Failed to create match vote ledger table: ' . $wpdb->last_error);
+        }
+
+        return true;
+    }
+
+    /**
+     * Migration 1.7.2: One show-vote ballot per voter per group.
+     *
+     * Adds votes.ballot_key (keyed hash of show, group and voter) with
+     * UNIQUE (ballot_key, vote_rank), so a ballot's rank-1 row can only be
+     * written once even when two submissions race past the "already voted"
+     * check. Existing rows keep ballot_key NULL, which never collides.
+     */
+    private static function migration_1_7_2(): bool {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'pf_votes';
+
+        $suppress = $wpdb->suppress_errors(true);
+        $columns = $wpdb->get_col("SHOW COLUMNS FROM `$table`");
+        $wpdb->suppress_errors($suppress);
+
+        if (empty($columns)) {
+            // Table not created yet; activation creates it and re-runs migrations.
+            return true;
+        }
+
+        if (!in_array('ballot_key', $columns, true)) {
+            $wpdb->query("ALTER TABLE `$table` ADD COLUMN ballot_key char(64) DEFAULT NULL AFTER token");
+        }
+
+        $index = $wpdb->get_results("SHOW INDEX FROM `$table` WHERE Key_name = 'ballot_rank'");
+        if (empty($index)) {
+            $wpdb->query("ALTER TABLE `$table` ADD UNIQUE KEY ballot_rank (ballot_key, vote_rank)");
+        }
+
+        $index = $wpdb->get_results("SHOW INDEX FROM `$table` WHERE Key_name = 'ballot_rank'");
+        if (empty($index)) {
+            throw new RuntimeException('Failed to add votes.ballot_rank UNIQUE index: ' . $wpdb->last_error);
         }
 
         return true;

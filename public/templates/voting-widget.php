@@ -2,7 +2,8 @@
 if (!defined('ABSPATH')) exit;
 
 $show_slug = esc_attr($atts['show_slug']);
-$top_n = intval($atts['top_n']);
+// The server accepts at most Peanut_Festival_Voting::MAX_BALLOT_RANKS choices.
+$top_n = max(1, min(Peanut_Festival_Voting::MAX_BALLOT_RANKS, intval($atts['top_n'])));
 $show_timer = intval($atts['show_timer']);
 ?>
 

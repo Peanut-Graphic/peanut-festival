@@ -24,6 +24,7 @@ class Peanut_Festival_REST_Response {
         'invalid_date' => ['status' => 400, 'message' => 'Invalid date format'],
         'invalid_amount' => ['status' => 400, 'message' => 'Invalid amount'],
         'empty_data' => ['status' => 400, 'message' => 'No data provided'],
+        'invalid_ballot' => ['status' => 400, 'message' => 'Invalid ballot'],
 
         // 401 Unauthorized
         'unauthorized' => ['status' => 401, 'message' => 'Authentication required'],
