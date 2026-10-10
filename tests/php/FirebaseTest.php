@@ -365,4 +365,29 @@ class FirebaseTest extends TestCase
         $this->assertLessThan($now + $expires_in, $token_expires);
         $this->assertGreaterThan($now, $token_expires);
     }
+
+    public function test_api_subscribe_is_rate_limited(): void
+    {
+        global $transients;
+        $transients = [];
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.77';
+
+        // Exhaust the general bucket for this client.
+        $limit = Peanut_Festival_Rate_Limiter::get_limit('general');
+        for ($i = 0; $i < $limit; $i++) {
+            Peanut_Festival_Rate_Limiter::check('general');
+        }
+
+        $request = new WP_REST_Request('POST', '/peanut-festival/v1/firebase/subscribe');
+        $request->set_param('token', 'device-token');
+        $request->set_param('festival_id', 1);
+
+        $response = Peanut_Festival_Firebase::api_subscribe($request);
+
+        $this->assertInstanceOf(WP_REST_Response::class, $response);
+        $this->assertSame(429, $response->get_status(), 'An exhausted bucket must stop the subscribe call.');
+
+        $transients = [];
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+    }
 }
