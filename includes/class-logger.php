@@ -262,26 +262,15 @@ class Peanut_Festival_Logger {
      * @return string|null IP address
      */
     private static function get_client_ip(): ?string {
-        $headers = [
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_REAL_IP',
-            'REMOTE_ADDR',
-        ];
-
-        foreach ($headers as $header) {
-            if (!empty($_SERVER[$header])) {
-                $ip = $_SERVER[$header];
-                // Handle comma-separated IPs (proxies)
-                if (str_contains($ip, ',')) {
-                    $ip = trim(explode(',', $ip)[0]);
-                }
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
-                }
-            }
+        // Forwarding headers are client-controlled; only believe them from a
+        // configured trusted proxy (same resolution as the rate limiter).
+        if (class_exists('Peanut_Festival_Rate_Limiter')) {
+            $ip = Peanut_Festival_Rate_Limiter::get_client_ip();
+            return $ip !== '' ? $ip : null;
         }
 
-        return null;
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : null;
     }
 
     // Convenience methods for each log level
