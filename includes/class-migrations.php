@@ -16,7 +16,7 @@ class Peanut_Festival_Migrations {
     /**
      * Current database schema version
      */
-    private const CURRENT_VERSION = '1.7.0';
+    private const CURRENT_VERSION = '1.7.1';
 
     /**
      * Option name for storing DB version
@@ -172,6 +172,10 @@ class Peanut_Festival_Migrations {
             '1.7.0' => [
                 'name' => 'Enforce one ticket per Stripe payment (UNIQUE tickets.payment_id)',
                 'callback' => [self::class, 'migration_1_7_0'],
+            ],
+            '1.7.1' => [
+                'name' => 'Add head-to-head match vote ledger (one vote per voter per match)',
+                'callback' => [self::class, 'migration_1_7_1'],
             ],
         ];
     }
@@ -639,6 +643,47 @@ class Peanut_Festival_Migrations {
 
         if ($result['status'] === 'error') {
             throw new RuntimeException($result['message']);
+        }
+
+        return true;
+    }
+
+    /**
+     * Migration 1.7.1: Head-to-head match vote ledger.
+     *
+     * One row per accepted vote. The UNIQUE keys make "one vote per voter per
+     * match" an atomic database guarantee instead of a racy transient check:
+     *  - (match_id, voter_hash):  signed voter cookie / logged-in user;
+     *  - (match_id, client_hash): keyed hash of client IP + User-Agent.
+     */
+    private static function migration_1_7_1(): bool {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $table = $wpdb->prefix . 'pf_match_votes';
+
+        $sql = "CREATE TABLE IF NOT EXISTS $table (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            match_id bigint(20) unsigned NOT NULL,
+            performer_id bigint(20) unsigned NOT NULL,
+            voter_hash char(64) NOT NULL,
+            client_hash char(64) DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY match_voter (match_id, voter_hash),
+            UNIQUE KEY match_client (match_id, client_hash),
+            KEY performer_id (performer_id)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+
+        $suppress = $wpdb->suppress_errors(true);
+        $columns = $wpdb->get_col("SHOW COLUMNS FROM `$table`");
+        $wpdb->suppress_errors($suppress);
+
+        if (empty($columns) || !in_array('voter_hash', $columns, true)) {
+            throw new RuntimeException('Failed to create match vote ledger table: ' . $wpdb->last_error);
         }
 
         return true;

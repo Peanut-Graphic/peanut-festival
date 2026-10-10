@@ -1120,14 +1120,26 @@ class Peanut_Festival_Competitions {
     /**
      * Submit vote for a match.
      *
-     * @since 1.1.0
+     * One vote per voter per match is enforced atomically by the match_votes
+     * ledger's UNIQUE keys; the vote count is incremented in SQL so concurrent
+     * votes are never lost.
      *
-     * @param int    $match_id Match ID.
+     * @since 1.1.0
+     * @since 1.4.1 Voter identity is server-derived; ledger + atomic increment.
+     *
+     * @param int    $match_id     Match ID.
      * @param int    $performer_id Performer being voted for.
-     * @param string $voter_id Unique voter identifier.
+     * @param string $voter_hash   Server-derived voter identifier (see Peanut_Festival_Voter_Identity).
+     * @param string $client_hash  Optional keyed hash of client IP + User-Agent.
      * @return bool|WP_Error Success or error.
      */
-    public static function submit_match_vote(int $match_id, int $performer_id, string $voter_id): bool|WP_Error {
+    public static function submit_match_vote(int $match_id, int $performer_id, string $voter_hash, string $client_hash = ''): bool|WP_Error {
+        global $wpdb;
+
+        if ($voter_hash === '') {
+            return new WP_Error('invalid_voter', 'Unable to identify voter');
+        }
+
         $match = self::get_match($match_id);
 
         if (!$match) {
@@ -1144,41 +1156,69 @@ class Peanut_Festival_Competitions {
         }
 
         // Validate performer is in this match
-        if ($performer_id != $match->performer_1_id && $performer_id != $match->performer_2_id) {
+        if ($performer_id !== (int) $match->performer_1_id && $performer_id !== (int) $match->performer_2_id) {
             return new WP_Error('invalid_performer', 'Performer not in this match');
         }
 
-        // Check for duplicate vote (using transient for simplicity)
-        $vote_key = "pf_match_vote_{$match_id}_{$voter_id}";
-        if (get_transient($vote_key)) {
+        $ledger = Peanut_Festival_Database::get_table_name('match_votes');
+        $matches = Peanut_Festival_Database::get_table_name('competition_matches');
+
+        // Friendly early answer; the UNIQUE keys below are the real guarantee.
+        $already = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $ledger WHERE match_id = %d AND (voter_hash = %s OR client_hash = %s) LIMIT 1",
+            $match_id,
+            $voter_hash,
+            $client_hash
+        ));
+        if ($already) {
             return new WP_Error('already_voted', 'You have already voted in this match');
         }
 
-        // Record vote
-        if ($performer_id == $match->performer_1_id) {
-            self::update_match($match_id, [
-                'votes_performer_1' => $match->votes_performer_1 + 1,
-            ]);
-        } else {
-            self::update_match($match_id, [
-                'votes_performer_2' => $match->votes_performer_2 + 1,
-            ]);
+        $suppress = $wpdb->suppress_errors(true);
+        $inserted = $wpdb->insert(
+            $ledger,
+            [
+                'match_id' => $match_id,
+                'performer_id' => $performer_id,
+                'voter_hash' => $voter_hash,
+                'client_hash' => $client_hash !== '' ? $client_hash : null,
+                'created_at' => current_time('mysql'),
+            ],
+            ['%d', '%d', '%s', '%s', '%s']
+        );
+        $wpdb->suppress_errors($suppress);
+
+        if (!$inserted) {
+            // Lost a race to a concurrent vote from the same voter/client.
+            return new WP_Error('already_voted', 'You have already voted in this match');
         }
 
-        // Mark voter (expires when voting closes)
-        $ttl = max(60, strtotime($match->voting_closes_at) - time());
-        set_transient($vote_key, true, $ttl);
+        $ledger_id = (int) $wpdb->insert_id;
+        $column = $performer_id === (int) $match->performer_1_id ? 'votes_performer_1' : 'votes_performer_2';
+
+        $updated = $wpdb->query($wpdb->prepare(
+            "UPDATE $matches SET $column = $column + 1, updated_at = %s WHERE id = %d AND status = %s",
+            current_time('mysql'),
+            $match_id,
+            self::MATCH_VOTING
+        ));
+
+        if (!$updated) {
+            // Voting closed between the checks and the increment: undo the ledger row.
+            $wpdb->delete($ledger, ['id' => $ledger_id], ['%d']);
+            return new WP_Error('voting_closed', 'Voting is not open for this match');
+        }
 
         /**
          * Fires when a match vote is submitted.
          *
          * @since 1.1.0
          *
-         * @param int    $match_id Match ID.
+         * @param int    $match_id     Match ID.
          * @param int    $performer_id Performer voted for.
-         * @param string $voter_id Voter identifier.
+         * @param string $voter_hash   Server-derived voter identifier.
          */
-        do_action('peanut_festival_match_vote_submitted', $match_id, $performer_id, $voter_id);
+        do_action('peanut_festival_match_vote_submitted', $match_id, $performer_id, $voter_hash);
 
         return true;
     }

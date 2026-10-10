@@ -42,6 +42,7 @@ class Peanut_Festival_Database {
         'booker_links',
         'competitions',
         'competition_matches',
+        'match_votes',
     ];
 
     /**

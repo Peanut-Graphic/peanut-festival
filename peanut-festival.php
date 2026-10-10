@@ -133,6 +133,8 @@ final class Peanut_Festival {
 
         // Security classes
         require_once PEANUT_FESTIVAL_PATH . 'includes/class-rate-limiter.php';
+        require_once PEANUT_FESTIVAL_PATH . 'includes/class-request-guard.php';
+        require_once PEANUT_FESTIVAL_PATH . 'includes/class-voter-identity.php';
 
         // Caching
         require_once PEANUT_FESTIVAL_PATH . 'includes/class-cache.php';

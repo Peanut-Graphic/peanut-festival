@@ -20,6 +20,7 @@ class Peanut_Festival_Rate_Limiter {
         'vote' => ['limit' => 10, 'window' => 60],           // 10 votes per minute
         'application' => ['limit' => 5, 'window' => 300],     // 5 applications per 5 minutes
         'payment' => ['limit' => 10, 'window' => 60],         // 10 payment attempts per minute
+        'match_vote' => ['limit' => 10, 'window' => 60],      // 10 head-to-head votes per minute per IP
         'general' => ['limit' => 60, 'window' => 60],         // 60 requests per minute (for GET)
     ];
 
