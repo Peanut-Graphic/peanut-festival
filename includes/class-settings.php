@@ -9,17 +9,17 @@
  *   Setting key: firebase_api_key
  *   Env var:     PEANUT_FESTIVAL_FIREBASE_API_KEY
  *
- * Supported environment variables:
- *   - PEANUT_FESTIVAL_FIREBASE_API_KEY
- *   - PEANUT_FESTIVAL_FIREBASE_PROJECT_ID
- *   - PEANUT_FESTIVAL_FIREBASE_DATABASE_URL
+ * Environment overrides apply to single-key reads (Settings::get('key')) of
+ * the keys in SENSITIVE_KEYS, e.g.:
  *   - PEANUT_FESTIVAL_FIREBASE_SERVICE_ACCOUNT (JSON string or base64-encoded)
- *   - PEANUT_FESTIVAL_FIREBASE_VAPID_KEY
- *   - PEANUT_FESTIVAL_STRIPE_SECRET_KEY
  *   - PEANUT_FESTIVAL_STRIPE_WEBHOOK_SECRET
- *   - PEANUT_FESTIVAL_EVENTBRITE_API_KEY
- *   - PEANUT_FESTIVAL_EVENTBRITE_CLIENT_SECRET
  *   - PEANUT_FESTIVAL_MAILCHIMP_API_KEY
+ * Stripe API keys are read by Peanut_Festival_Payments from the
+ * PEANUT_STRIPE_{TEST,LIVE}_{SECRET,PUBLISHABLE}_KEY constants/env first.
+ *
+ * REST exposure: secret keys (SECRET_KEYS) are never returned by the admin
+ * settings API (masked as "••••" + last 4), and only users with
+ * manage_options may change secrets or ADMIN_ONLY_KEYS.
  *
  * @package Peanut_Festival
  * @since   1.0.0
@@ -49,17 +49,95 @@ class Peanut_Festival_Settings {
         'firebase_database_url',
         'firebase_service_account',
         'firebase_vapid_key',
-        'stripe_secret_key',
-        'stripe_publishable_key',
+        'stripe_test_secret_key',
+        'stripe_test_publishable_key',
+        'stripe_live_secret_key',
+        'stripe_live_publishable_key',
         'stripe_webhook_secret',
-        'eventbrite_api_key',
-        'eventbrite_client_id',
+        'eventbrite_token',
         'eventbrite_client_secret',
         'eventbrite_webhook_secret',
         'mailchimp_api_key',
         'booker_api_url',
         'booker_api_key',
+        'ml_api_key',
     ];
+
+    /**
+     * Credentials stored in the settings option. Never returned by the REST
+     * API in plaintext; writable only by users with manage_options.
+     */
+    private const SECRET_KEYS = [
+        'stripe_test_secret_key',
+        'stripe_live_secret_key',
+        'stripe_webhook_secret',
+        'firebase_service_account',
+        'eventbrite_token',
+        'eventbrite_client_secret',
+        'eventbrite_webhook_secret',
+        'mailchimp_api_key',
+        'booker_api_key',
+        'ml_api_key',
+    ];
+
+    /**
+     * Secrets whose mask must not reveal a suffix (structured values).
+     */
+    private const NO_SUFFIX_SECRET_KEYS = [
+        'firebase_service_account',
+    ];
+
+    /**
+     * Not secret, but they decide where money, data or trust goes:
+     * writable only by users with manage_options.
+     */
+    private const ADMIN_ONLY_KEYS = [
+        'stripe_test_mode',
+        'stripe_test_publishable_key',
+        'stripe_live_publishable_key',
+        'booker_api_url',
+        'trusted_proxies',
+    ];
+
+    /**
+     * Keys accepted by PUT /admin/settings and how each is sanitised.
+     * Anything else in the request body is ignored.
+     */
+    private const REST_WRITABLE_KEYS = [
+        'active_festival_id' => 'id',
+        'notification_email' => 'email',
+        'voting_weight_first' => 'int',
+        'voting_weight_second' => 'int',
+        'voting_weight_third' => 'int',
+        'eventbrite_org_id' => 'text',
+        'mailchimp_list_id' => 'text',
+        'log_level' => 'log_level',
+        'log_to_database' => 'bool',
+        'ml_enabled' => 'bool',
+        'ml_auto_train' => 'bool',
+        // Administrator-only.
+        'stripe_test_mode' => 'bool',
+        'stripe_test_publishable_key' => 'text',
+        'stripe_live_publishable_key' => 'text',
+        'booker_api_url' => 'url',
+        'trusted_proxies' => 'text',
+        // Secrets (administrator-only).
+        'stripe_test_secret_key' => 'secret',
+        'stripe_live_secret_key' => 'secret',
+        'stripe_webhook_secret' => 'secret',
+        'firebase_service_account' => 'secret_json',
+        'eventbrite_token' => 'secret',
+        'eventbrite_client_secret' => 'secret',
+        'eventbrite_webhook_secret' => 'secret',
+        'mailchimp_api_key' => 'secret',
+        'booker_api_key' => 'secret',
+        'ml_api_key' => 'secret',
+    ];
+
+    /**
+     * Prefix of a masked secret.
+     */
+    private const MASK = '••••';
 
     /**
      * Get a setting value.
@@ -234,6 +312,206 @@ class Peanut_Festival_Settings {
      */
     public static function set_active_festival_id(?int $id): bool {
         return self::set('active_festival_id', $id);
+    }
+
+    /**
+     * Whether a key holds a credential that must never be returned in plaintext.
+     */
+    public static function is_secret(string $key): bool {
+        return in_array($key, self::SECRET_KEYS, true);
+    }
+
+    /**
+     * Mask a secret for display: "••••" plus the last four characters for
+     * long values, "••••" alone otherwise, "" when empty.
+     */
+    public static function mask_secret(string $key, $value): string {
+        if (!is_string($value) && !is_numeric($value)) {
+            return '';
+        }
+
+        $value = (string) $value;
+        if ($value === '') {
+            return '';
+        }
+
+        if (strlen($value) < 16 || in_array($key, self::NO_SUFFIX_SECRET_KEYS, true)) {
+            return self::MASK;
+        }
+
+        return self::MASK . substr($value, -4);
+    }
+
+    /**
+     * All stored settings, safe to return over the REST API.
+     *
+     * Secrets are replaced by their mask, and `_secrets` reports for every
+     * secret key whether a value is stored (`has_value`) and whether an
+     * environment variable overrides it (`from_env`).
+     *
+     * @return array<string, mixed>
+     */
+    public static function get_for_rest(): array {
+        $settings = (array) self::get();
+        $meta = [];
+
+        foreach (self::SECRET_KEYS as $key) {
+            $stored = $settings[$key] ?? '';
+            $has_value = is_string($stored) ? $stored !== '' : !empty($stored);
+
+            if (array_key_exists($key, $settings)) {
+                $settings[$key] = self::mask_secret($key, $stored);
+            }
+
+            $meta[$key] = [
+                'has_value' => $has_value,
+                'from_env' => self::is_from_env($key),
+            ];
+        }
+
+        $settings['_secrets'] = $meta;
+
+        return $settings;
+    }
+
+    /**
+     * Apply a settings update from the REST API.
+     *
+     * Only REST_WRITABLE_KEYS are considered; values are sanitised per key. A
+     * secret sent back as its own mask (or unchanged) is left alone, so the
+     * settings form can round-trip. Changing a secret or an ADMIN_ONLY_KEYS
+     * value without manage_options rejects the whole update.
+     *
+     * @param array $data                Decoded request body.
+     * @param bool  $can_manage_secrets  Whether the user has manage_options.
+     * @return array|WP_Error List of changed keys, or an error (403 / 400).
+     */
+    public static function apply_rest_update(array $data, bool $can_manage_secrets): array|WP_Error {
+        $stored = (array) self::get();
+        $changes = [];
+        $denied = [];
+
+        foreach ($data as $key => $raw) {
+            if (!is_string($key) || !isset(self::REST_WRITABLE_KEYS[$key])) {
+                continue;
+            }
+
+            $type = self::REST_WRITABLE_KEYS[$key];
+            $current = $stored[$key] ?? null;
+            $is_secret = self::is_secret($key);
+
+            if ($is_secret) {
+                if (!is_string($raw) && !is_numeric($raw) && $raw !== null) {
+                    return new WP_Error('invalid_setting', sprintf('Invalid value for %s.', $key), ['status' => 400]);
+                }
+                $raw = (string) $raw;
+                $current_string = is_string($current) || is_numeric($current) ? (string) $current : '';
+
+                if ($raw === $current_string || ($current_string !== '' && $raw === self::mask_secret($key, $current_string))) {
+                    continue; // Unchanged (possibly echoed back as its mask).
+                }
+            }
+
+            $value = self::sanitize_rest_value($type, $raw);
+            if (is_wp_error($value)) {
+                return new WP_Error($value->get_error_code(), sprintf('Invalid value for %s.', $key), ['status' => 400]);
+            }
+
+            if (!$is_secret && self::values_equal($value, $current === null ? null : self::sanitize_rest_value($type, $current))) {
+                continue;
+            }
+
+            if (!$can_manage_secrets && ($is_secret || in_array($key, self::ADMIN_ONLY_KEYS, true))) {
+                $denied[] = $key;
+                continue;
+            }
+
+            $changes[$key] = $value;
+        }
+
+        if (!empty($denied)) {
+            return new WP_Error(
+                'forbidden_setting',
+                'Only administrators can change integration credentials and payment settings: ' . implode(', ', $denied),
+                ['status' => 403, 'keys' => $denied]
+            );
+        }
+
+        if (!empty($changes)) {
+            self::update($changes);
+        }
+
+        return array_keys($changes);
+    }
+
+    /**
+     * Sanitise one REST-supplied setting value.
+     *
+     * @param string $type  Sanitiser name from REST_WRITABLE_KEYS.
+     * @param mixed  $value Raw value.
+     * @return mixed|WP_Error
+     */
+    private static function sanitize_rest_value(string $type, $value) {
+        switch ($type) {
+            case 'id':
+                $id = absint(is_scalar($value) ? $value : 0);
+                return $id > 0 ? $id : null;
+
+            case 'int':
+                return is_scalar($value) ? (int) $value : 0;
+
+            case 'bool':
+                return is_string($value)
+                    ? in_array(strtolower($value), ['1', 'true', 'yes', 'on'], true)
+                    : (bool) $value;
+
+            case 'email':
+                $raw = is_scalar($value) ? trim((string) $value) : '';
+                if ($raw === '') {
+                    return '';
+                }
+                $email = sanitize_email($raw);
+                return is_email($email) ? $email : new WP_Error('invalid_email', 'Invalid email');
+
+            case 'url':
+                return is_scalar($value) ? esc_url_raw(trim((string) $value), ['https', 'http']) : '';
+
+            case 'log_level':
+                $levels = ['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'];
+                $level = is_scalar($value) ? strtolower(trim((string) $value)) : '';
+                return in_array($level, $levels, true) ? $level : new WP_Error('invalid_setting', 'Invalid log level');
+
+            case 'secret':
+                return is_scalar($value) ? trim(wp_strip_all_tags((string) $value)) : '';
+
+            case 'secret_json':
+                $json = is_scalar($value) ? trim((string) $value) : '';
+                if ($json === '') {
+                    return '';
+                }
+                json_decode($json, true);
+                return json_last_error() === JSON_ERROR_NONE ? $json : new WP_Error('invalid_setting', 'Invalid JSON');
+
+            case 'text':
+            default:
+                return is_scalar($value) ? sanitize_text_field((string) $value) : '';
+        }
+    }
+
+    /**
+     * Loose-but-safe equality for comparing an incoming value with the stored one.
+     *
+     * @param mixed $a
+     * @param mixed $b
+     */
+    private static function values_equal($a, $b): bool {
+        if (is_bool($a) || is_bool($b)) {
+            return (bool) $a === (bool) $b;
+        }
+        if ($a === null || $b === null) {
+            return $a === $b;
+        }
+        return (string) $a === (string) $b;
     }
 
     /**

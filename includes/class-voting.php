@@ -18,6 +18,17 @@ class Peanut_Festival_Voting {
      */
     private const CACHE_EXPIRATION = 30;
 
+    /**
+     * Maximum ranked choices on a show-vote ballot: one per weighted rank
+     * (weight_first, weight_second, weight_third).
+     */
+    public const MAX_BALLOT_RANKS = 3;
+
+    /**
+     * Upper bound on the raw performer_ids list accepted for validation.
+     */
+    private const MAX_RAW_BALLOT_ENTRIES = 20;
+
     public static function get_instance(): Peanut_Festival_Voting {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -164,7 +175,115 @@ class Peanut_Festival_Voting {
             $vote_data['fingerprint_hash'] = $data['fingerprint_hash'];
         }
 
+        // One-ballot-per-voter key (UNIQUE with vote_rank); NULL for admin test votes.
+        if (!empty($data['ballot_key'])) {
+            $vote_data['ballot_key'] = $data['ballot_key'];
+        }
+
         return Peanut_Festival_Database::insert('votes', $vote_data);
+    }
+
+    /**
+     * Validate and normalise a submitted ballot.
+     *
+     * A ballot is an ordered list of distinct performer ids, all in the show's
+     * active group, at most MAX_BALLOT_RANKS long. Repeats of a performer are
+     * collapsed to their first (highest) rank; anything else invalid rejects the
+     * whole ballot.
+     *
+     * @param mixed $performer_ids Raw performer_ids parameter.
+     * @param array $config        Show voting config (see get_show_config()).
+     * @return int[]|WP_Error Ordered performer ids, or an error.
+     */
+    public static function normalize_ballot($performer_ids, array $config): array|WP_Error {
+        if (!is_array($performer_ids) || empty($performer_ids)) {
+            return new WP_Error('invalid_ballot', 'Select at least one performer.');
+        }
+
+        if (count($performer_ids) > self::MAX_RAW_BALLOT_ENTRIES) {
+            return new WP_Error('invalid_ballot', 'Too many selections.');
+        }
+
+        $group = (string) ($config['active_group'] ?? 'pool');
+        $eligible = array_map('intval', (array) ($config['groups'][$group] ?? []));
+
+        $ballot = [];
+        foreach (array_values($performer_ids) as $raw) {
+            if (!is_int($raw) && !(is_string($raw) && ctype_digit($raw))) {
+                return new WP_Error('invalid_ballot', 'Invalid performer selection.');
+            }
+
+            $performer_id = (int) $raw;
+            if ($performer_id <= 0 || !in_array($performer_id, $eligible, true)) {
+                return new WP_Error('invalid_ballot', 'One or more selected performers are not in the current voting group.');
+            }
+
+            if (!in_array($performer_id, $ballot, true)) {
+                $ballot[] = $performer_id;
+            }
+        }
+
+        if (count($ballot) > self::MAX_BALLOT_RANKS) {
+            return new WP_Error(
+                'invalid_ballot',
+                sprintf('Select at most %d performers.', self::MAX_BALLOT_RANKS)
+            );
+        }
+
+        return $ballot;
+    }
+
+    /**
+     * Keyed identifier for one voter's ballot in one show group.
+     */
+    public static function ballot_key(string $show_slug, string $group_name, string $ip_hash): string {
+        return hash_hmac('sha256', 'ballot|' . $show_slug . '|' . $group_name . '|' . $ip_hash, wp_salt('auth'));
+    }
+
+    /**
+     * Record a validated ballot, one row per rank.
+     *
+     * With a ballot key, the UNIQUE (ballot_key, vote_rank) index makes the
+     * rank-1 insert the atomic "first ballot wins" point; if any later rank
+     * fails, the rows already written for this ballot are removed.
+     *
+     * @param array       $base       Common vote fields (show_slug, group_name, ip_hash, ua_hash, token, fingerprint_hash).
+     * @param int[]       $ballot     Output of normalize_ballot().
+     * @param string|null $ballot_key Voter ballot key, or null for unrestricted admin test votes.
+     * @return true|WP_Error
+     */
+    public static function record_ballot(array $base, array $ballot, ?string $ballot_key): bool|WP_Error {
+        global $wpdb;
+
+        $written = [];
+
+        foreach (array_values($ballot) as $index => $performer_id) {
+            $row = $base;
+            $row['performer_id'] = (int) $performer_id;
+            $row['vote_rank'] = $index + 1;
+            $row['ballot_key'] = $ballot_key;
+
+            $suppress = $wpdb->suppress_errors(true);
+            $id = self::record_vote($row);
+            $error = (string) $wpdb->last_error;
+            $wpdb->suppress_errors($suppress);
+
+            if (!$id) {
+                foreach ($written as $written_id) {
+                    Peanut_Festival_Database::delete('votes', ['id' => $written_id]);
+                }
+
+                if ($index === 0 && stripos($error, 'Duplicate') !== false) {
+                    return new WP_Error('already_voted', 'You have already voted');
+                }
+
+                return new WP_Error('vote_failed', 'Your vote could not be recorded. Please try again.');
+            }
+
+            $written[] = (int) $id;
+        }
+
+        return true;
     }
 
     public static function get_results(string $show_slug, string $group_name = ''): array {

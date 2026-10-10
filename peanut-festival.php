@@ -133,6 +133,8 @@ final class Peanut_Festival {
 
         // Security classes
         require_once PEANUT_FESTIVAL_PATH . 'includes/class-rate-limiter.php';
+        require_once PEANUT_FESTIVAL_PATH . 'includes/class-request-guard.php';
+        require_once PEANUT_FESTIVAL_PATH . 'includes/class-voter-identity.php';
 
         // Caching
         require_once PEANUT_FESTIVAL_PATH . 'includes/class-cache.php';
@@ -201,6 +203,11 @@ final class Peanut_Festival {
                 error_log('Peanut Festival: Migration failed - ' . wp_json_encode($result));
             }
         }
+
+        // One-ticket-per-payment index: re-check while duplicates are reported,
+        // and tell administrators which payments need attention.
+        add_action('admin_init', ['Peanut_Festival_Migrations', 'maybe_recheck_ticket_payment_index']);
+        add_action('admin_notices', ['Peanut_Festival_Migrations', 'render_duplicate_ticket_payments_notice']);
 
         // Initialize modules
         Peanut_Festival_Festivals::get_instance();

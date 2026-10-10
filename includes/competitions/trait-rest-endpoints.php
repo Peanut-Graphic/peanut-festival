@@ -160,18 +160,34 @@ trait Peanut_Festival_Competitions_REST_Endpoints {
      * @return WP_REST_Response
      */
     public function rest_submit_vote(WP_REST_Request $request): WP_REST_Response {
-        $match_id = (int) $request->get_param('id');
-        $performer_id = (int) $request->get_param('performer_id');
-        $voter_id = sanitize_text_field($request->get_param('voter_id') ?? '');
-
-        if (!$voter_id) {
-            $voter_id = md5($_SERVER['REMOTE_ADDR'] . ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+        // Only this site's pages may submit votes.
+        $origin_error = Peanut_Festival_Request_Guard::require_same_origin($request, 'match_vote');
+        if ($origin_error !== null) {
+            return $origin_error;
         }
 
-        $result = self::submit_match_vote($match_id, $performer_id, $voter_id);
+        // Per-IP budget, counted before any other work.
+        $rate_limit = Peanut_Festival_Rate_Limiter::enforce('match_vote');
+        if ($rate_limit !== null) {
+            return $rate_limit;
+        }
+
+        $match_id = (int) $request->get_param('id');
+        $performer_id = (int) $request->get_param('performer_id');
+
+        // The voter is derived server-side; any client-supplied `voter_id` is ignored.
+        $result = self::submit_match_vote(
+            $match_id,
+            $performer_id,
+            Peanut_Festival_Voter_Identity::voter_hash(),
+            Peanut_Festival_Voter_Identity::client_hash()
+        );
 
         if (is_wp_error($result)) {
-            return new WP_REST_Response(['error' => $result->get_error_message()], 400);
+            return new WP_REST_Response([
+                'error' => $result->get_error_message(),
+                'code' => $result->get_error_code(),
+            ], 400);
         }
 
         return new WP_REST_Response(['success' => true]);

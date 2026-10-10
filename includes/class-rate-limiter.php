@@ -20,6 +20,7 @@ class Peanut_Festival_Rate_Limiter {
         'vote' => ['limit' => 10, 'window' => 60],           // 10 votes per minute
         'application' => ['limit' => 5, 'window' => 300],     // 5 applications per 5 minutes
         'payment' => ['limit' => 10, 'window' => 60],         // 10 payment attempts per minute
+        'match_vote' => ['limit' => 10, 'window' => 60],      // 10 head-to-head votes per minute per IP
         'general' => ['limit' => 60, 'window' => 60],         // 60 requests per minute (for GET)
     ];
 
@@ -162,18 +163,148 @@ class Peanut_Festival_Rate_Limiter {
      * @return string Hashed identifier
      */
     private static function get_identifier(): string {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        // Hash IP for privacy
+        return wp_hash(self::get_client_ip() . wp_salt('auth'));
+    }
 
-        // Check for proxied IP
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $forwarded = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-            $ip = trim($forwarded[0]);
-        } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
-            $ip = $_SERVER['HTTP_X_REAL_IP'];
+    /**
+     * Resolve the client IP address.
+     *
+     * X-Forwarded-For / X-Real-IP are client-controlled: any visitor can send
+     * them. They are only believed when the TCP peer (REMOTE_ADDR) is a
+     * configured trusted proxy, and even then X-Forwarded-For is walked from
+     * the right (the hop appended by our own proxy) to the first address that
+     * is not itself a trusted proxy. Left-most entries can be forged by the
+     * client and are never trusted on their own.
+     *
+     * Trusted proxies come from the `trusted_proxies` setting (array or
+     * comma/space separated list of IPs and CIDR ranges, IPv4 or IPv6) and the
+     * `peanut_festival_trusted_proxies` filter. Default: none.
+     *
+     * @return string Client IP address (may be empty if REMOTE_ADDR is unusable).
+     */
+    public static function get_client_ip(): string {
+        $remote = isset($_SERVER['REMOTE_ADDR']) ? trim((string) $_SERVER['REMOTE_ADDR']) : '';
+        $remote = filter_var($remote, FILTER_VALIDATE_IP) ? $remote : '';
+
+        $trusted = self::get_trusted_proxies();
+
+        if ($remote === '' || empty($trusted) || !self::ip_in_ranges($remote, $trusted)) {
+            return $remote;
         }
 
-        // Hash IP for privacy
-        return wp_hash($ip . wp_salt('auth'));
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $hops = array_reverse(array_map('trim', explode(',', (string) $_SERVER['HTTP_X_FORWARDED_FOR'])));
+
+            foreach ($hops as $hop) {
+                if (!filter_var($hop, FILTER_VALIDATE_IP)) {
+                    // A malformed hop means the chain cannot be trusted past here.
+                    break;
+                }
+                if (!self::ip_in_ranges($hop, $trusted)) {
+                    return $hop;
+                }
+            }
+
+            return $remote;
+        }
+
+        if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+            $real_ip = trim((string) $_SERVER['HTTP_X_REAL_IP']);
+            if (filter_var($real_ip, FILTER_VALIDATE_IP)) {
+                return $real_ip;
+            }
+        }
+
+        return $remote;
+    }
+
+    /**
+     * Configured trusted proxy IPs / CIDR ranges.
+     *
+     * @return string[]
+     */
+    public static function get_trusted_proxies(): array {
+        $configured = Peanut_Festival_Settings::get('trusted_proxies', []);
+
+        if (is_string($configured)) {
+            $configured = preg_split('/[\s,]+/', $configured, -1, PREG_SPLIT_NO_EMPTY);
+        }
+
+        /**
+         * Filter the proxies whose X-Forwarded-For / X-Real-IP headers are trusted.
+         *
+         * @param string[] $proxies IP addresses or CIDR ranges. Default empty.
+         */
+        $proxies = apply_filters('peanut_festival_trusted_proxies', is_array($configured) ? $configured : []);
+
+        if (!is_array($proxies)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(static function ($proxy) {
+            return is_string($proxy) ? trim($proxy) : '';
+        }, $proxies)));
+    }
+
+    /**
+     * Whether an IP address falls inside any of the given IPs / CIDR ranges.
+     *
+     * @param string   $ip     IPv4 or IPv6 address.
+     * @param string[] $ranges Single addresses or CIDR ranges.
+     */
+    public static function ip_in_ranges(string $ip, array $ranges): bool {
+        $ip_bin = @inet_pton($ip);
+        if ($ip_bin === false) {
+            return false;
+        }
+
+        foreach ($ranges as $range) {
+            $range = trim((string) $range);
+            if ($range === '') {
+                continue;
+            }
+
+            $bits = null;
+            if (strpos($range, '/') !== false) {
+                [$range, $bits] = explode('/', $range, 2);
+                if (!ctype_digit($bits)) {
+                    continue;
+                }
+                $bits = (int) $bits;
+            }
+
+            $range_bin = @inet_pton($range);
+            if ($range_bin === false || strlen($range_bin) !== strlen($ip_bin)) {
+                continue;
+            }
+
+            $max_bits = strlen($ip_bin) * 8;
+            if ($bits === null) {
+                $bits = $max_bits;
+            }
+            if ($bits < 0 || $bits > $max_bits) {
+                continue;
+            }
+
+            $full_bytes = intdiv($bits, 8);
+            $remaining = $bits % 8;
+
+            if (substr($ip_bin, 0, $full_bytes) !== substr($range_bin, 0, $full_bytes)) {
+                continue;
+            }
+
+            if ($remaining === 0) {
+                return true;
+            }
+
+            $mask = (0xFF << (8 - $remaining)) & 0xFF;
+            if ((ord($ip_bin[$full_bytes]) & $mask) === (ord($range_bin[$full_bytes]) & $mask)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

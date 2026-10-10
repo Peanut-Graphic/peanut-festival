@@ -715,16 +715,37 @@ class Peanut_Festival_REST_API_Admin {
 
     // Settings
     public function get_settings(\WP_REST_Request $request): \WP_REST_Response {
-        $settings = Peanut_Festival_Settings::get();
-
-        return new \WP_REST_Response(['success' => true, 'data' => $settings]);
+        // Secrets are masked for everyone, administrators included.
+        return new \WP_REST_Response(['success' => true, 'data' => Peanut_Festival_Settings::get_for_rest()]);
     }
 
     public function update_settings(\WP_REST_Request $request): \WP_REST_Response {
         $data = $request->get_json_params();
-        Peanut_Festival_Settings::update($data);
 
-        return new \WP_REST_Response(['success' => true]);
+        if (!is_array($data)) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'code' => 'invalid_body',
+                'message' => 'Expected a JSON object of settings.',
+            ], 400);
+        }
+
+        $result = Peanut_Festival_Settings::apply_rest_update($data, current_user_can('manage_options'));
+
+        if (is_wp_error($result)) {
+            $error_data = (array) $result->get_error_data();
+            return new \WP_REST_Response([
+                'success' => false,
+                'code' => $result->get_error_code(),
+                'message' => $result->get_error_message(),
+            ], (int) ($error_data['status'] ?? 400));
+        }
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'updated' => $result,
+            'data' => Peanut_Festival_Settings::get_for_rest(),
+        ]);
     }
 
     // Eventbrite

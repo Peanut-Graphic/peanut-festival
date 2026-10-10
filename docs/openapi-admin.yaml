@@ -654,14 +654,24 @@ paths:
       tags:
         - Settings
       summary: Get plugin settings
+      description: |
+        Integration secrets are never returned in plaintext, for any caller:
+        each is masked (`••••` + last 4, or `••••`) and `_secrets.{key}`
+        reports `has_value` and `from_env`.
       operationId: getSettings
       responses:
         '200':
-          description: Settings object
+          description: Settings object (secrets masked)
     put:
       tags:
         - Settings
       summary: Update plugin settings
+      description: |
+        Only the listed keys are accepted (others are ignored) and each is
+        sanitised. A secret sent back as its mask, or unchanged, is left
+        alone. Changing a secret, `stripe_test_mode`, a Stripe publishable
+        key, `booker_api_url` or `trusted_proxies` requires `manage_options`;
+        other callers receive 403 `forbidden_setting`.
       operationId: updateSettings
       requestBody:
         content:
@@ -671,19 +681,63 @@ paths:
               properties:
                 active_festival_id:
                   type: integer
+                notification_email:
+                  type: string
+                voting_weight_first:
+                  type: integer
+                voting_weight_second:
+                  type: integer
+                voting_weight_third:
+                  type: integer
+                eventbrite_org_id:
+                  type: string
+                mailchimp_list_id:
+                  type: string
+                log_level:
+                  type: string
+                log_to_database:
+                  type: boolean
+                ml_enabled:
+                  type: boolean
+                ml_auto_train:
+                  type: boolean
                 stripe_test_mode:
                   type: boolean
-                stripe_publishable_key:
+                  description: Administrator only
+                stripe_test_publishable_key:
                   type: string
-                stripe_secret_key:
+                  description: Administrator only
+                stripe_live_publishable_key:
                   type: string
-                eventbrite_api_key:
+                  description: Administrator only
+                booker_api_url:
                   type: string
+                  description: Administrator only
+                trusted_proxies:
+                  type: string
+                  description: Administrator only. IPs/CIDR ranges whose X-Forwarded-For is trusted.
+                stripe_test_secret_key:
+                  type: string
+                  description: Secret, administrator only
+                stripe_live_secret_key:
+                  type: string
+                  description: Secret, administrator only
+                stripe_webhook_secret:
+                  type: string
+                  description: Secret, administrator only
+                eventbrite_token:
+                  type: string
+                  description: Secret, administrator only
                 mailchimp_api_key:
                   type: string
+                  description: Secret, administrator only
       responses:
         '200':
-          description: Settings updated
+          description: Settings updated (`updated` lists changed keys; `data` is the masked settings)
+        '400':
+          description: Invalid value
+        '403':
+          description: A secret or administrator-only setting was changed without manage_options
 
   /eventbrite/sync:
     post:

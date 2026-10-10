@@ -146,9 +146,15 @@ paths:
                   description: Show identifier
                 performer_ids:
                   type: array
+                  minItems: 1
+                  maxItems: 3
                   items:
                     type: integer
-                  description: Ordered list of performer IDs (first = highest rank)
+                    minimum: 1
+                  description: |
+                    Ordered list of performer IDs (first = highest rank). Every id
+                    must be in the show's active voting group; repeats collapse
+                    to their first rank; at most 3 distinct performers.
                 token:
                   type: string
                   description: Unique voter token for duplicate prevention
@@ -160,7 +166,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
         '400':
-          description: Missing parameters
+          description: Missing parameters (`missing_parameters`) or invalid ballot (`invalid_ballot`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Voting closed (`voting_closed`), already voted (`already_voted`), or cross-origin request
           content:
             application/json:
               schema:
@@ -176,6 +188,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /matches/{id}/vote:
+    post:
+      tags:
+        - Voting
+      summary: Vote in a head-to-head competition match
+      description: |
+        One vote per voter per match. The voter is identified server-side
+        (logged-in user, or a signed first-party `pf_voter` cookie the server
+        issues, plus a keyed IP + User-Agent hash); any `voter_id` sent by the
+        client is ignored. The request must come from this site (Origin, or
+        Referer when Origin is absent). Rate limited to 10 requests per minute
+        per client IP.
+      operationId: submitMatchVote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - performer_id
+              properties:
+                performer_id:
+                  type: integer
+                  description: One of the match's two performers
+      responses:
+        '200':
+          description: Vote recorded
+        '400':
+          description: |
+            `already_voted`, `voting_closed`, `invalid_performer`, `invalid_match`
+        '403':
+          description: Request did not come from this site (`cross_origin_blocked`)
+        '429':
+          description: Rate limit exceeded
 
   /apply/performer:
     post:
