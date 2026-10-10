@@ -213,15 +213,53 @@ class Peanut_Festival_Payments {
     }
 
     /**
-     * Confirm a PaymentIntent succeeded and create the ticket
+     * Seconds to wait for another request that is fulfilling the same payment.
+     */
+    private const PAYMENT_LOCK_TIMEOUT = 5;
+
+    /**
+     * Whether a string looks like a Stripe PaymentIntent id (pi_...).
+     *
+     * The id is interpolated into a Stripe API path, so anything else (for
+     * example "pi_x/../customers") must be rejected before any request is made.
+     */
+    public static function is_valid_payment_intent_id(string $payment_intent_id): bool {
+        return (bool) preg_match('/^pi_[A-Za-z0-9]{1,250}$/', $payment_intent_id);
+    }
+
+    /**
+     * Name of the MySQL advisory lock that serialises fulfilment of one payment.
+     *
+     * Scoped by table prefix so two sites sharing a MySQL server never contend,
+     * and hashed to stay inside MySQL's 64-character lock-name limit.
+     */
+    public static function lock_name(string $payment_intent_id): string {
+        global $wpdb;
+        return 'pf_tkt_' . md5($wpdb->prefix . '|' . $payment_intent_id);
+    }
+
+    /**
+     * Confirm a PaymentIntent succeeded and return its ticket.
+     *
+     * Idempotent: a PaymentIntent maps to exactly one ticket. Replaying the
+     * confirm call (or racing it against the Stripe webhook) returns the ticket
+     * that already exists instead of minting another one.
      */
     public static function confirm_payment(string $payment_intent_id): array {
+        if (!self::is_valid_payment_intent_id($payment_intent_id)) {
+            return [
+                'success' => false,
+                'code' => 'invalid_payment_intent',
+                'message' => 'Invalid payment intent ID',
+            ];
+        }
+
         if (!self::is_configured()) {
             return ['success' => false, 'message' => 'Payment system not configured'];
         }
 
         try {
-            $response = self::stripe_request('GET', '/v1/payment_intents/' . $payment_intent_id);
+            $response = self::stripe_request('GET', '/v1/payment_intents/' . rawurlencode($payment_intent_id));
 
             if (isset($response['error'])) {
                 return [
@@ -230,19 +268,32 @@ class Peanut_Festival_Payments {
                 ];
             }
 
-            if ($response['status'] !== 'succeeded') {
+            if (($response['id'] ?? '') !== $payment_intent_id) {
                 return [
                     'success' => false,
-                    'message' => 'Payment not yet completed',
-                    'status' => $response['status'],
+                    'message' => 'Payment verification failed',
                 ];
             }
 
-            // Payment succeeded - create the ticket
-            $metadata = $response['metadata'] ?? [];
-            $ticket = self::create_ticket_from_payment($response, $metadata);
+            if (($response['status'] ?? '') !== 'succeeded') {
+                return [
+                    'success' => false,
+                    'message' => 'Payment not yet completed',
+                    'status' => $response['status'] ?? null,
+                ];
+            }
 
-            if (!$ticket) {
+            $fulfilment = self::fulfill_payment($response);
+
+            if ($fulfilment['status'] === 'busy') {
+                return [
+                    'success' => false,
+                    'code' => 'payment_processing',
+                    'message' => 'This payment is already being processed. Please try again in a moment.',
+                ];
+            }
+
+            if ($fulfilment['ticket'] === null) {
                 return [
                     'success' => false,
                     'message' => 'Payment succeeded but ticket creation failed',
@@ -251,11 +302,92 @@ class Peanut_Festival_Payments {
 
             return [
                 'success' => true,
-                'ticket_id' => $ticket['id'],
-                'ticket_code' => $ticket['ticket_code'],
+                'ticket_id' => (int) $fulfilment['ticket']['id'],
+                'ticket_code' => (string) $fulfilment['ticket']['ticket_code'],
+                'existing' => $fulfilment['status'] === 'existing',
             ];
         } catch (Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Find the ticket already issued for a payment, if any.
+     *
+     * @return array{id: int, ticket_code: string}|null
+     */
+    private static function find_ticket_for_payment(string $payment_intent_id): ?array {
+        $existing = Peanut_Festival_Database::get_row('tickets', ['payment_id' => $payment_intent_id]);
+
+        if (!$existing) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $existing->id,
+            'ticket_code' => (string) $existing->ticket_code,
+        ];
+    }
+
+    /**
+     * Issue the ticket for a succeeded PaymentIntent exactly once.
+     *
+     * Three layers make this safe under replay and concurrency:
+     *  1. an existing ticket for the payment is returned as-is;
+     *  2. a per-payment MySQL advisory lock serialises the check-then-create
+     *     (confirm endpoint, webhook, retries, multiple PHP workers);
+     *  3. the UNIQUE index on tickets.payment_id rejects any second insert
+     *     that still slips through, in which case the winner's ticket is returned.
+     *
+     * @param array $payment_intent Stripe PaymentIntent object (decoded).
+     * @return array{status: string, ticket: ?array} status: existing|created|busy|failed.
+     */
+    private static function fulfill_payment(array $payment_intent): array {
+        global $wpdb;
+
+        $payment_intent_id = (string) ($payment_intent['id'] ?? '');
+
+        $existing = self::find_ticket_for_payment($payment_intent_id);
+        if ($existing) {
+            return ['status' => 'existing', 'ticket' => $existing];
+        }
+
+        $lock = self::lock_name($payment_intent_id);
+        $timeout = (int) apply_filters('peanut_festival_payment_lock_timeout', self::PAYMENT_LOCK_TIMEOUT);
+        $acquired = $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, %d)', $lock, max(0, $timeout)));
+
+        if ((string) $acquired !== '1') {
+            // Another request is fulfilling this payment right now. It may have
+            // just finished; otherwise tell the caller to retry.
+            $existing = self::find_ticket_for_payment($payment_intent_id);
+            if ($existing) {
+                return ['status' => 'existing', 'ticket' => $existing];
+            }
+            return ['status' => 'busy', 'ticket' => null];
+        }
+
+        try {
+            $existing = self::find_ticket_for_payment($payment_intent_id);
+            if ($existing) {
+                return ['status' => 'existing', 'ticket' => $existing];
+            }
+
+            $ticket = self::create_ticket_from_payment($payment_intent, $payment_intent['metadata'] ?? []);
+
+            if ($ticket) {
+                return ['status' => 'created', 'ticket' => $ticket];
+            }
+
+            // The insert may have lost a race to a writer that bypassed the lock
+            // (UNIQUE index violation): hand back the ticket that won.
+            $existing = self::find_ticket_for_payment($payment_intent_id);
+            if ($existing) {
+                return ['status' => 'existing', 'ticket' => $existing];
+            }
+
+            return ['status' => 'failed', 'ticket' => null];
+        } finally {
+            $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock));
         }
     }
 
@@ -475,15 +607,12 @@ class Peanut_Festival_Payments {
      * Handle successful payment webhook
      */
     private static function handle_payment_succeeded(array $payment_intent): void {
-        // Check if ticket already created (for payment confirmations)
-        $existing = Peanut_Festival_Database::get_row('tickets', ['payment_id' => $payment_intent['id']]);
-
-        if ($existing) {
-            return; // Already processed
+        if (!self::is_valid_payment_intent_id((string) ($payment_intent['id'] ?? ''))) {
+            return;
         }
 
-        // Create ticket if not already done
-        self::create_ticket_from_payment($payment_intent, $payment_intent['metadata'] ?? []);
+        // Shares the idempotent, locked fulfilment path with confirm_payment().
+        self::fulfill_payment($payment_intent);
     }
 
     /**

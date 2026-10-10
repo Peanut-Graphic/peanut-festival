@@ -16,7 +16,7 @@ class Peanut_Festival_Migrations {
     /**
      * Current database schema version
      */
-    private const CURRENT_VERSION = '1.6.0';
+    private const CURRENT_VERSION = '1.7.0';
 
     /**
      * Option name for storing DB version
@@ -27,6 +27,29 @@ class Peanut_Festival_Migrations {
      * Option name for storing migration history
      */
     private const HISTORY_OPTION = 'peanut_festival_migration_history';
+
+    /**
+     * Option holding the report of tickets that share a Stripe payment_id.
+     *
+     * Written when the tickets.payment_id UNIQUE index cannot be added because
+     * duplicate rows already exist; deleted once the index is in place.
+     */
+    public const DUPLICATE_PAYMENTS_OPTION = 'peanut_festival_ticket_payment_duplicates';
+
+    /**
+     * Name of the UNIQUE index on tickets.payment_id.
+     */
+    private const TICKET_PAYMENT_UNIQUE_INDEX = 'payment_id_unique';
+
+    /**
+     * Transient that throttles re-checking a deferred tickets.payment_id index.
+     */
+    private const DUPLICATE_RECHECK_TRANSIENT = 'pf_ticket_payment_index_recheck';
+
+    /**
+     * Maximum number of duplicated payment ids kept in the stored report.
+     */
+    private const DUPLICATE_REPORT_LIMIT = 100;
 
     /**
      * Check if migrations need to run
@@ -145,6 +168,10 @@ class Peanut_Festival_Migrations {
             '1.6.0' => [
                 'name' => 'Add performance indexes for votes and transactions',
                 'callback' => [self::class, 'migration_1_6_0'],
+            ],
+            '1.7.0' => [
+                'name' => 'Enforce one ticket per Stripe payment (UNIQUE tickets.payment_id)',
+                'callback' => [self::class, 'migration_1_7_0'],
             ],
         ];
     }
@@ -597,6 +624,212 @@ class Peanut_Festival_Migrations {
         }
 
         return true;
+    }
+
+    /**
+     * Migration 1.7.0: Enforce one ticket per Stripe PaymentIntent.
+     *
+     * Adds a UNIQUE index on tickets.payment_id. If duplicate tickets already
+     * exist (from the replayable confirm endpoint fixed in this release) the
+     * index is deferred and the duplicates are reported instead of failing the
+     * migration; see ensure_ticket_payment_unique_index().
+     */
+    private static function migration_1_7_0(): bool {
+        $result = self::ensure_ticket_payment_unique_index();
+
+        if ($result['status'] === 'error') {
+            throw new RuntimeException($result['message']);
+        }
+
+        return true;
+    }
+
+    /**
+     * Ensure tickets.payment_id carries a UNIQUE index.
+     *
+     * Never deletes or rewrites a ticket that carries a real payment id. When
+     * duplicates exist, they are recorded in DUPLICATE_PAYMENTS_OPTION (shown to
+     * administrators as an admin notice) and the index is left for a later
+     * re-check, once an operator has resolved them.
+     *
+     * @return array{status: string, message: string, duplicates: array<string, int[]>}
+     *               status is one of: exists, added, duplicates, missing_table, error.
+     */
+    public static function ensure_ticket_payment_unique_index(): array {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'pf_tickets';
+        $result = [
+            'status' => 'exists',
+            'message' => '',
+            'duplicates' => [],
+        ];
+
+        $suppress = $wpdb->suppress_errors(true);
+        $columns = $wpdb->get_col("SHOW COLUMNS FROM `$table`");
+        $wpdb->suppress_errors($suppress);
+
+        if (empty($columns) || !in_array('payment_id', $columns, true)) {
+            $result['status'] = 'missing_table';
+            $result['message'] = 'tickets table or payment_id column not present yet';
+            return $result;
+        }
+
+        if (self::ticket_payment_unique_index_exists()) {
+            delete_option(self::DUPLICATE_PAYMENTS_OPTION);
+            return $result;
+        }
+
+        // An empty string is not a payment id; NULL is what "no payment" means
+        // and NULLs never collide under a UNIQUE index.
+        $wpdb->query("UPDATE `$table` SET payment_id = NULL WHERE payment_id = ''");
+
+        $duplicates = self::find_duplicate_ticket_payments();
+
+        if (!empty($duplicates)) {
+            $extra = 0;
+            foreach ($duplicates as $ticket_ids) {
+                $extra += count($ticket_ids) - 1;
+            }
+
+            update_option(self::DUPLICATE_PAYMENTS_OPTION, [
+                'detected_at' => current_time('mysql'),
+                'payment_count' => count($duplicates),
+                'extra_tickets' => $extra,
+                'payments' => array_slice($duplicates, 0, self::DUPLICATE_REPORT_LIMIT, true),
+            ], false);
+
+            error_log('Peanut Festival: tickets.payment_id UNIQUE index deferred - ' . wp_json_encode([
+                'payment_count' => count($duplicates),
+                'extra_tickets' => $extra,
+            ]));
+
+            $result['status'] = 'duplicates';
+            $result['message'] = sprintf('%d payment(s) have more than one ticket', count($duplicates));
+            $result['duplicates'] = $duplicates;
+            return $result;
+        }
+
+        $index = self::TICKET_PAYMENT_UNIQUE_INDEX;
+        $wpdb->query("ALTER TABLE `$table` ADD UNIQUE KEY `$index` (payment_id)");
+
+        if (!self::ticket_payment_unique_index_exists()) {
+            $result['status'] = 'error';
+            $result['message'] = 'Failed to add UNIQUE index on tickets.payment_id: ' . $wpdb->last_error;
+            return $result;
+        }
+
+        // The old non-unique index is now redundant.
+        $old = $wpdb->get_results("SHOW INDEX FROM `$table` WHERE Key_name = 'payment_id'");
+        if (!empty($old)) {
+            $wpdb->query("ALTER TABLE `$table` DROP INDEX `payment_id`");
+        }
+
+        delete_option(self::DUPLICATE_PAYMENTS_OPTION);
+        $result['status'] = 'added';
+
+        return $result;
+    }
+
+    /**
+     * Whether tickets.payment_id already has the UNIQUE index.
+     */
+    private static function ticket_payment_unique_index_exists(): bool {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'pf_tickets';
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SHOW INDEX FROM `$table` WHERE Key_name = %s",
+            self::TICKET_PAYMENT_UNIQUE_INDEX
+        ));
+
+        return !empty($rows) && (int) $rows[0]->Non_unique === 0;
+    }
+
+    /**
+     * Find payment ids that are attached to more than one ticket.
+     *
+     * @return array<string, int[]> payment_id => ticket ids (ascending).
+     */
+    private static function find_duplicate_ticket_payments(): array {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'pf_tickets';
+        // Single pass over the table (no self-join/subquery), so it also works
+        // where the table cannot be opened twice in one statement.
+        $rows = $wpdb->get_results(
+            "SELECT payment_id, GROUP_CONCAT(id ORDER BY id ASC SEPARATOR ',') AS ticket_ids
+             FROM `$table`
+             WHERE payment_id IS NOT NULL
+             GROUP BY payment_id
+             HAVING COUNT(*) > 1
+             ORDER BY payment_id ASC"
+        );
+
+        $duplicates = [];
+        foreach ((array) $rows as $row) {
+            $duplicates[(string) $row->payment_id] = array_map('intval', explode(',', (string) $row->ticket_ids));
+        }
+
+        return $duplicates;
+    }
+
+    /**
+     * Re-check a deferred tickets.payment_id index (hooked to admin_init).
+     *
+     * Runs at most once an hour, and only while a duplicate report exists, so
+     * the index is added automatically once an operator resolves duplicates.
+     */
+    public static function maybe_recheck_ticket_payment_index(): void {
+        if (!get_option(self::DUPLICATE_PAYMENTS_OPTION)) {
+            return;
+        }
+
+        if (get_transient(self::DUPLICATE_RECHECK_TRANSIENT)) {
+            return;
+        }
+
+        set_transient(self::DUPLICATE_RECHECK_TRANSIENT, 1, HOUR_IN_SECONDS);
+        self::ensure_ticket_payment_unique_index();
+    }
+
+    /**
+     * Admin notice listing tickets that share a Stripe payment (hooked to admin_notices).
+     */
+    public static function render_duplicate_ticket_payments_notice(): void {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        $report = get_option(self::DUPLICATE_PAYMENTS_OPTION);
+        if (empty($report) || !is_array($report)) {
+            return;
+        }
+
+        $payments = is_array($report['payments'] ?? null) ? $report['payments'] : [];
+
+        echo '<div class="notice notice-error"><p><strong>';
+        echo esc_html__('Peanut Festival: duplicate tickets found for the same Stripe payment.', 'peanut-festival');
+        echo '</strong> ';
+        echo esc_html(sprintf(
+            /* translators: 1: number of payments, 2: number of extra tickets */
+            __('%1$d payment(s) have %2$d extra ticket(s). Nothing was deleted. Review each payment in Stripe, void or refund the extra tickets, then delete the extra rows; the one-ticket-per-payment database guarantee is added automatically once no duplicates remain.', 'peanut-festival'),
+            (int) ($report['payment_count'] ?? 0),
+            (int) ($report['extra_tickets'] ?? 0)
+        ));
+        echo '</p><ul style="list-style:disc;margin-left:2em;">';
+
+        foreach (array_slice($payments, 0, 20, true) as $payment_id => $ticket_ids) {
+            echo '<li><code>' . esc_html((string) $payment_id) . '</code> &rarr; ';
+            echo esc_html(sprintf(
+                /* translators: %s: comma-separated ticket ids */
+                __('ticket ids %s', 'peanut-festival'),
+                implode(', ', array_map('intval', (array) $ticket_ids))
+            ));
+            echo '</li>';
+        }
+
+        echo '</ul></div>';
     }
 
     // =========================================================================

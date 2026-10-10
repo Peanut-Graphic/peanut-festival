@@ -680,7 +680,10 @@ class Peanut_Festival_REST_API {
         $result = Peanut_Festival_Payments::confirm_payment($payment_intent_id);
 
         if (!$result['success']) {
-            return new \WP_REST_Response($result, 400);
+            // A concurrent request is issuing this payment's ticket: 409 tells
+            // the client to retry, and the retry returns that same ticket.
+            $status = ($result['code'] ?? '') === 'payment_processing' ? 409 : 400;
+            return new \WP_REST_Response($result, $status);
         }
 
         return new \WP_REST_Response([
