@@ -55,6 +55,15 @@ trait Peanut_Festival_REST_Admin_Firebase {
     public function update_firebase_settings(\WP_REST_Request $request): \WP_REST_Response {
         $data = $request->get_json_params();
 
+        // The service account carries a private key: administrators only.
+        if (!empty($data['credentials_json']) && !current_user_can('manage_options')) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'code' => 'forbidden_setting',
+                'message' => 'Only administrators can upload Firebase service account credentials.',
+            ], 403);
+        }
+
         $updates = [];
 
         if (isset($data['enabled'])) {
