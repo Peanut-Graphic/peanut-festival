@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-10
+
+### Fixed
+- Duplicate-payment reconciliation reports retain every ticket ID even with a small database `group_concat_max_len`. Administrator guidance preserves ticket history and avoids automatic refunds of a shared charge. See `docs/RELEASE-1.4.1.md` for reconciliation and deployment checks.
+
 ### Security
 - **Payments:** one Stripe PaymentIntent now yields exactly one ticket.
   `POST /payments/confirm` used to create a new ticket, revenue transaction

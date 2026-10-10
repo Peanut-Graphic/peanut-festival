@@ -843,11 +843,11 @@ class Peanut_Festival_Migrations {
         global $wpdb;
 
         $table = $wpdb->prefix . 'pf_tickets';
-        // Single pass over the table (no self-join/subquery), so it also works
-        // where the table cannot be opened twice in one statement.
-        $rows = $wpdb->get_results(
-            "SELECT payment_id, GROUP_CONCAT(id ORDER BY id ASC SEPARATOR ',') AS ticket_ids
-             FROM `$table`
+        // GROUP_CONCAT can silently truncate a large replay group, losing ticket
+        // ids and undercounting the report. Find groups first, then fetch their
+        // ids as rows; neither query reopens the table within one statement.
+        $payments = $wpdb->get_col(
+            "SELECT payment_id FROM `$table`
              WHERE payment_id IS NOT NULL
              GROUP BY payment_id
              HAVING COUNT(*) > 1
@@ -855,8 +855,11 @@ class Peanut_Festival_Migrations {
         );
 
         $duplicates = [];
-        foreach ((array) $rows as $row) {
-            $duplicates[(string) $row->payment_id] = array_map('intval', explode(',', (string) $row->ticket_ids));
+        foreach ((array) $payments as $payment_id) {
+            $duplicates[(string) $payment_id] = array_map('intval', $wpdb->get_col($wpdb->prepare(
+                "SELECT id FROM `$table` WHERE payment_id = %s ORDER BY id ASC",
+                $payment_id
+            )));
         }
 
         return $duplicates;
@@ -901,7 +904,7 @@ class Peanut_Festival_Migrations {
         echo '</strong> ';
         echo esc_html(sprintf(
             /* translators: 1: number of payments, 2: number of extra tickets */
-            __('%1$d payment(s) have %2$d extra ticket(s). Nothing was deleted. Review each payment in Stripe, void or refund the extra tickets, then delete the extra rows; the one-ticket-per-payment database guarantee is added automatically once no duplicates remain.', 'peanut-festival'),
+            __('%1$d payment(s) have %2$d extra ticket(s). Nothing was deleted. Review each payment in Stripe and preserve all ticket, transaction and check-in history. Do not delete tickets or refund a shared payment merely because multiple tickets exist. Follow the release reconciliation guide before changing payment links; the database guarantee is added automatically once no duplicate payment links remain.', 'peanut-festival'),
             (int) ($report['payment_count'] ?? 0),
             (int) ($report['extra_tickets'] ?? 0)
         ));
