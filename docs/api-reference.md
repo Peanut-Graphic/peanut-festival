@@ -148,7 +148,7 @@ POST /vote/submit
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `show_slug` | string | Yes | Show slug identifier |
-| `performer_ids` | array | Yes | Array of performer IDs (in rank order) |
+| `performer_ids` | array | Yes | Performer IDs in rank order: 1–3 distinct IDs, all in the show's active voting group (repeats collapse to their first rank; anything else returns `400 invalid_ballot`) |
 | `token` | string | Yes | Unique identifier for vote deduplication |
 
 **Success Response:**

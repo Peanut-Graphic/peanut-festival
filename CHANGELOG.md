@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **Payments:** one Stripe PaymentIntent now yields exactly one ticket.
+  `POST /payments/confirm` used to create a new ticket, revenue transaction
+  and confirmation email on every call for a succeeded PaymentIntent, so one
+  payment could be replayed into unlimited tickets. Confirm and the Stripe
+  webhook now share an idempotent, MySQL-locked fulfilment path; migration
+  1.7.0 adds `UNIQUE(tickets.payment_id)`. Pre-existing duplicate tickets are
+  reported to administrators (admin notice + `peanut_festival_ticket_payment_duplicates`
+  option), never deleted, and the index is added automatically once they are
+  resolved. Malformed PaymentIntent ids are rejected before any Stripe call.
+- **Head-to-head votes:** `POST /matches/{id}/vote` no longer trusts a
+  client-supplied `voter_id`. Voters are identified server-side (signed
+  first-party `pf_voter` cookie or logged-in user, plus a keyed IP + User-Agent
+  hash), one vote per voter per match is enforced by the new `pf_match_votes`
+  ledger's UNIQUE keys (migration 1.7.1), counts are incremented atomically in
+  SQL, the request must come from this site (Origin/Referer), and a new
+  `match_vote` rate limit (10/min per IP) applies.
+- **Show votes:** ballots must be distinct performers from the active group,
+  at most three; repeats collapse to one rank and anything else is rejected
+  (`400 invalid_ballot`). Migration 1.7.2 adds `votes.ballot_key` with
+  `UNIQUE(ballot_key, vote_rank)` so racing duplicate ballots are refused by
+  MySQL. The `[pf_vote]` widget clamps `top_n` to 1–3.
+- **Rate limiting:** client IPs come from `REMOTE_ADDR`; `X-Forwarded-For` /
+  `X-Real-IP` are only honoured from configured trusted proxies (new
+  `trusted_proxies` setting and `peanut_festival_trusted_proxies` filter,
+  default none), so forged headers can no longer reset rate-limit buckets.
+- **Settings secrets:** `GET /admin/settings` masks every integration secret
+  (Stripe, webhook, Firebase service account, Mailchimp, Eventbrite, Booker,
+  ML) for every caller and reports `_secrets.{key}.has_value`. `PUT` accepts an
+  allowlist of sanitised keys only; secrets and payment/trust settings can
+  only be changed with `manage_options` (Festival Producers get 403). Firebase
+  service-account upload is administrator-only.
+- **Firebase:** the `/firebase/subscribe` rate limit is now enforced (it
+  previously checked the limiter's result with `is_wp_error()` and never fired).
+
+### Fixed
+- The Stripe webhook handler and Mailchimp integration called an undefined
+  `Peanut_Festival_Settings::get_option()` and fataled; they now use
+  `Settings::get()`.
+
+### Added
+- Real-WordPress (MySQL) contract tests for payment idempotency, the
+  duplicate-ticket migration, head-to-head and show-vote integrity, and
+  settings secret handling.
+
 ## [1.3.2] - 2026-08-21
 
 ### Security

@@ -230,6 +230,7 @@ Individual audience votes.
 | `ip_hash` | VARCHAR(64) | MD5 hash of IP (fraud prevention) |
 | `ua_hash` | VARCHAR(64) | User agent hash |
 | `token` | VARCHAR(64) | Anonymous voter token |
+| `ballot_key` | CHAR(64) NULL | HMAC of show, group and voter IP hash; NULL for administrator test votes (migration 1.7.2) |
 | `voted_at` | DATETIME | Vote timestamp |
 
 **Indexes:**
@@ -237,6 +238,7 @@ Individual audience votes.
 - `idx_show_performer` (show_slug, performer_id)
 - `idx_ip_hash` (ip_hash)
 - `idx_token` (token)
+- `ballot_rank` UNIQUE (ballot_key, vote_rank) — one ballot per voter per show group
 
 ---
 
@@ -335,6 +337,28 @@ Individual matchups in competitions.
 - `idx_performer_1_id` (performer_1_id)
 - `idx_performer_2_id` (performer_2_id)
 - `idx_scheduled_time` (scheduled_time)
+
+---
+
+### pf_match_votes
+
+Ledger of accepted head-to-head votes (migration 1.7.1). Inserting the row is
+the atomic "has not voted yet" check; the match's `votes_performer_N` counter
+is then incremented in SQL.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | BIGINT UNSIGNED | Primary key |
+| `match_id` | BIGINT UNSIGNED | FK to competition_matches |
+| `performer_id` | BIGINT UNSIGNED | Performer voted for |
+| `voter_hash` | CHAR(64) | HMAC of the signed `pf_voter` cookie id or logged-in user |
+| `client_hash` | CHAR(64) NULL | HMAC of client IP + User-Agent |
+| `created_at` | DATETIME | Vote timestamp |
+
+**Indexes:**
+- `match_voter` UNIQUE (match_id, voter_hash)
+- `match_client` UNIQUE (match_id, client_hash)
+- `performer_id` (performer_id)
 
 ---
 
@@ -459,11 +483,18 @@ Individual ticket records.
 | `qr_code` | VARCHAR(255) | QR code for check-in |
 | `checked_in` | TINYINT(1) | Check-in status |
 | `checked_in_at` | DATETIME | Check-in time |
+| `ticket_code` | VARCHAR(20) | Code shown at the door (migration 1.0.1) |
+| `payment_id` | VARCHAR(100) NULL | Stripe PaymentIntent id (migration 1.0.1) |
+| `payment_amount` | DECIMAL(10,2) | Amount charged (migration 1.0.1) |
+| `payment_status` | VARCHAR(20) | 'pending', 'completed', 'failed', 'refunded' (migration 1.0.1) |
 
 **Indexes:**
 - `idx_attendee_id` (attendee_id)
 - `idx_show_id` (show_id)
 - `idx_status` (status)
+- `payment_id_unique` UNIQUE (payment_id) — one ticket per Stripe payment (migration 1.7.0).
+  NULL payment ids (non-Stripe tickets) are not constrained. If duplicate rows
+  already exist the index is deferred and reported; see SECURITY.md.
 
 ---
 
