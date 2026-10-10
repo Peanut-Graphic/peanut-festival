@@ -22,8 +22,8 @@ class Peanut_Festival_Mailchimp {
     }
 
     private function __construct() {
-        $this->api_key = Peanut_Festival_Settings::get_option('mailchimp_api_key', '');
-        $this->list_id = Peanut_Festival_Settings::get_option('mailchimp_list_id', '');
+        $this->api_key = Peanut_Festival_Settings::get('mailchimp_api_key', '');
+        $this->list_id = Peanut_Festival_Settings::get('mailchimp_list_id', '');
 
         // Extract server prefix from API key (e.g., us1, us2, etc.)
         if ($this->api_key && strpos($this->api_key, '-') !== false) {

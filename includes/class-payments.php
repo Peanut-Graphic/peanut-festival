@@ -521,7 +521,7 @@ class Peanut_Festival_Payments {
     public static function handle_webhook(): void {
         $payload = file_get_contents('php://input');
         $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
-        $webhook_secret = Peanut_Festival_Settings::get_option('stripe_webhook_secret');
+        $webhook_secret = Peanut_Festival_Settings::get('stripe_webhook_secret');
 
         if (!$webhook_secret) {
             http_response_code(400);
