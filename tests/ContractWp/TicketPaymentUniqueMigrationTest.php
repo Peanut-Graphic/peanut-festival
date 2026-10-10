@@ -111,13 +111,35 @@ class TicketPaymentUniqueMigrationTest extends WP_UnitTestCase {
 
         $this->assertSame('duplicates', \Peanut_Festival_Migrations::ensure_ticket_payment_unique_index()['status']);
 
-        // Operator resolves the duplicate (e.g. after refunding it in Stripe).
+        // After archiving the original payment link, an operator preserves the row.
         global $wpdb;
-        $wpdb->delete($this->table, ['id' => $dupe]);
+        $wpdb->update($this->table, ['payment_id' => null], ['id' => $dupe]);
+        $this->assertSame(2, (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table}"));
 
         $this->assertSame('added', \Peanut_Festival_Migrations::ensure_ticket_payment_unique_index()['status']);
         $this->assertTrue($this->has_unique_index());
         $this->assertFalse(get_option(\Peanut_Festival_Migrations::DUPLICATE_PAYMENTS_OPTION));
+    }
+
+    public function test_duplicate_report_is_not_truncated_by_group_concat_limits(): void {
+        global $wpdb;
+        $previous = (int) $wpdb->get_var('SELECT @@SESSION.group_concat_max_len');
+        $ids = [];
+        for ($i = 0; $i < 12; $i++) {
+            $ids[] = $this->insert_ticket(sprintf('L%07d', $i), 'pi_large_replay');
+        }
+
+        try {
+            $wpdb->query('SET SESSION group_concat_max_len = 4');
+            $result = \Peanut_Festival_Migrations::ensure_ticket_payment_unique_index();
+            $this->assertSame('duplicates', $result['status']);
+            $this->assertSame($ids, $result['duplicates']['pi_large_replay']);
+            $report = get_option(\Peanut_Festival_Migrations::DUPLICATE_PAYMENTS_OPTION);
+            $this->assertSame(11, $report['extra_tickets']);
+            $this->assertSame($ids, $report['payments']['pi_large_replay']);
+        } finally {
+            $wpdb->query('SET SESSION group_concat_max_len = ' . $previous);
+        }
     }
 
     public function test_empty_string_payment_ids_are_normalised_to_null(): void {
