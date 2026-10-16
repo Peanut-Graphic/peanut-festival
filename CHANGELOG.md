@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Refresh the frontend minor and patch dependencies, including Vite 8.3.4 and React plugin 6.1.2. Keep the exact toolchain guard aligned with the qualified lockfile; PHP and Node runtime floors are unchanged.
+
+### Security
+- Update transitive development-tool copies of `brace-expansion` to patched 1.1.21 and 5.0.12 within their existing dependency ranges.
+
 ## [1.4.1] - 2026-10-10
 
 ### Fixed
