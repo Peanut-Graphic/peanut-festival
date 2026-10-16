@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-10-16
+
 ### Changed
 - Refresh the frontend minor and patch dependencies, including Vite 8.3.4 and React plugin 6.1.2. Keep the exact toolchain guard aligned with the qualified lockfile; PHP and Node runtime floors are unchanged.
 
